@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" type="text/css" href="glitch-portrait.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+  <div class="w-full">
+    <div id="character-list" class="flex"></div>
+  </div>
+
+  <div id="character-sheet">
+    <div class="sheet-header">
+      <div class="portrait-column">
+        <div class="glitch-portrait">
+        <div class="extra-layer"></div>
+</div>
+        <div id="weapon-button" class="weapon-button glitch-img"></div>
+        <div id="weapon-desc" class="weapon-desc"></div>
+
+        <!-- Secondary weapon - only shown when weapon2 exists -->
+        <div id="weapon2-section" style="display:none; width:100%; margin-top:-20px;">
+          <div id="weapon2-button" class="weapon2-button glitch-img"></div>
+          <div id="weapon2-desc" class="weapon-desc" style="margin-top:8px;"></div>
+        </div>
+      </div>
+      <div class="flex-1">
+        <h2 id="detail-name" class="text-3xl font-bold text-white mb-1 tracking-wide"></h2>
+        <div id="detail-subtitle" class="text-lg text-gray-400 mb-3 tracking-wide"></div>
+        <dl class="stats-grid">
+          <dt>Ranged AC:</dt><dd id="detail-ranged-ac">—</dd>
+          <dt>Melee AC:</dt><dd id="detail-melee-ac">—</dd>
+          <dt>Trauma Target:</dt><dd id="detail-trauma">—</dd>
+          <dt>Saves:</dt><dd id="detail-saves">—</dd>
+          <dt>Attack Bonus:</dt><dd id="detail-attack-bonus">—</dd>
+        </dl>
+        <div class="abilities-section">
+          <div class="abilities-title">Abilities:</div>
+          <div class="abilities-list" id="detail-abilities"></div>
+        </div>
+
+
+<div id="dice-results" style="display:none; margin-top:0rem; padding:1.25rem; background:#0f172a; color:#e0f2fe;">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Attack -->
+    <div class="dice-column">
+      <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Attack</h4>
+      <div id="attack-preview" class="dice-preview relative cursor-pointer overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="attack-overlay">
+          <div class="text-white text-xl font-bold text-center px-4" id="attack-label">Roll Attack</div>
+        </div>
+        <div id="attack-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
+      </div>
+      <div id="attack-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
+    </div>
+
+    <!-- Damage -->
+    <div class="dice-column">
+      <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Damage</h4>
+      <div id="damage-preview" class="dice-preview relative cursor-pointer overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="damage-overlay">
+          <div class="text-white text-xl font-bold text-center px-4" id="damage-label">Roll Damage</div>
+        </div>
+        <div id="damage-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
+      </div>
+      <div id="damage-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
+    </div>
+
+    <!-- Trauma -->
+    <div class="dice-column">
+      <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Trauma</h4>
+      <div id="trauma-preview" class="dice-preview relative cursor-pointer overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="trauma-overlay">
+          <div class="text-white text-xl font-bold text-center px-4" id="trauma-label">Roll Trauma</div>
+        </div>
+        <div id="trauma-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
+      </div>
+      <div id="trauma-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
+    </div>
+  </div>
+</div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <button id="history-btn" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+">📜</button>
+
+  <script>
+  const characters = [
+    {
+      name: "KB",
+      subtitle: "Programmer, collector extraordinaire",
+      baseMaxHP: 24,
+      currentHP: 24,
+      soak: 10,
+      maxSoak: 10,
+      avalanche: false,
+      changeCounter: 0,
+      changeTimeout: null,
+      portraitFull: "images/1full.png",
+      rangedAC: 17,
+      meleeAC: 15,
+      traumaTarget: 12,
+      saves: "Physical: 10<br>Evasion: 8<br>Mental: 11",
+      attackBonus: "5",
+      weapon: "Modded SMG:Attack:1d20+10<br><small>(DEX+Shoot+Attack Bonus+Burst)</small><br><br>Damage: 1d8+5<br><small>(DEX+Mod+Burst)</small><br><br>Trauma 1d6x2<br>Mag: 30/30<br>Spare Mags: 6",
+      weaponButton: "images/smg.png",
+      weapon2: "Thermal Blade:Attack: 1d20+6<br><small>(DEX+Attack Bonus)</small><br><br>Damage: 1d10+2<br>Trauma: 1d8x3<br>Shock: 6/AC 15",
+      thermalBladePowered: false,
+      weapon2Button: "images/thermalblade.png",         
+      weapon2ShotSounds: ["audio/thermalbladeattack.mp3"],     
+      weapon2MaxMag: 0,
+      weapon2SpareMags: 0,
+      abilities: [
+  {
+    name: "Hacker",
+    desc: "Hacking / cyberspace-related mental actions",
+    checked: false,
+    checkbox: false
+  },
+  {
+    name: "Specialist: Notice",
+    desc: "Notice (enemy damage / weaknesses / loot / environment)",
+    checked: false,
+    checkbox: false,
+    isRollable: true         
+  },
+  {
+    name: "Specialist: Lead",
+    desc: "Maintain morale / discipline / make NPCs follow orders, <br>even when they think it’s a bad idea",
+    checked: false,
+    checkbox: false,
+    isRollable: true          
+  }
+],
+      mag: 30,
+      maxMag: 30,
+      spareMags: 6,
+      shotSounds: ["audio/smg1.mp3","audio/smg2.mp3","audio/smg3.mp3","audio/smg4.mp3","audio/smg5.mp3","audio/smg6.mp3","audio/smg7.mp3","audio/smg8.mp3"],
+      isBurst: true
+    },
+    {
+      name: "MarMar",
+      subtitle: "Kicks ass at Rainbow Road and DDR",
+      baseMaxHP: 28,
+      currentHP: 28,
+      soak: 0,
+      maxSoak: 0,
+      avalanche: false,
+      changeCounter: 0,
+      changeTimeout: null,
+      portraitFull: "images/2full.png",
+      rangedAC: 16,
+      meleeAC: 16,
+      traumaTarget: 7,
+      saves: "10+",
+      attackBonus: "7",
+      weapon: "Modded Combat Rifle:Attack: 1d20+7<br>Damage: 1d12+2<br>Trauma: 1d8x3<br>Mag: 30/30<br>Spare Mags: 6",
+      abilities: [
+        { name: "Alert Level 2", desc: "You cannot be surprised, not vulnerable to execution attacks, all teammates roll initiative with advantage, you always act first in combat", checked: false, checkbox: false },
+        { name: "Cyber Eyes & Ears", desc: "Anti-flash / Anti-stun / Anti-smoke", checked: false, checkbox: false },
+        { name: "Enhanced Reflexes", desc: "Once per scene bonus action", checked: false, checkbox: true },
+        { name: "Gun-link", desc: "No penalty when not looking; re-roll one missed shot per scene", checked: false, checkbox: true },
+        { name: "Veteran's Luck", desc: "Once per scene, either a missed attack on an enemy hits or an attack against you misses", checked: false, checkbox: true }
+      ],
+      weaponButton: "images/combatrifle.png",
+      mag: 30,
+      maxMag: 30,
+      spareMags: 6,
+      shotSounds: ["audio/ar1.mp3","audio/ar2.mp3","audio/ar3.mp3"],
+      isBurst: true
+    },
+    {
+      name: "Sanders",
+      subtitle: "Don't fuck with the colonel",
+      baseMaxHP: 24,
+      currentHP: 24,
+      soak: 0,
+      maxSoak: 0,
+      avalanche: false,
+      changeCounter: 0,
+      changeTimeout: null,
+      portraitFull: "images/3full.png",
+      rangedAC: 16,
+      meleeAC: 15,
+      traumaTarget: 7,
+      saves: "12+",
+      attackBonus: "7",
+      weapon: "Anti-Materiel Rifle:Attack: 1d20+7<br>Damage: 3d8!<br>Trauma: 1d12x3<br>Mag: 4/4<br>Spare Mags: 5",
+      weaponButton: "images/amr.png",
+      mag: 4,
+      maxMag: 4,
+      spareMags: 5,
+      shotSounds: ["audio/amr1.mp3", "audio/amr2.mp3"],
+      isBurst: false,
+      weapon2: "Modded Advanced Knife:Attack: 1d20+7<br>Damage: 1d8+2<br>Trauma: 1d8x3<br>Shock: 3/Any",
+      weapon2Button: "images/advancedknife.png", 
+      weapon2ShotSounds: ["audio/advancedknife.mp3"],
+      abilities: [
+        { name: "Cyber Eyes", desc: "Anti-flash", checked: false, checkbox: false },
+        { name: "Deadeye Level 2", desc: "Ready a stowed weapon as an instant action, reload as an on-turn action, no melee penalty for ranged weapons, once per scene guaranteed hit on inanimate, non-human target", checked: false, checkbox: true },
+        { name: "Veteran's Luck", desc: "Once per scene, either a missed attack on an enemy hits or an attack against you misses", checked: false, checkbox: true }
+      ],
+
+    },
+    {
+      name: "Bakersfield",
+      subtitle: "Need a light?",
+      baseMaxHP: 23,
+      currentHP: 23,
+      soak: 0,
+      maxSoak: 0,
+      avalanche: false,
+      changeCounter: 0,
+      changeTimeout: null,
+      portraitFull: "images/4full.png",
+      rangedAC: 15,
+      meleeAC: 13,
+      traumaTarget: 5,
+      saves: "13+",
+      attackBonus: "6",
+      weapon: "Modded SMG:Attack: 1d20+6<br>Damage: 1d8+2<br>Trauma: 1d6x3<br>Mag: 20/20<br>Spare Mags: 4",
+      weaponButton: "images/smg.png",
+      mag: 20,
+      maxMag: 20,
+      spareMags: 4,
+      shotSounds: ["audio/smg1.mp3","audio/smg2.mp3","audio/smg3.mp3","audio/smg4.mp3","audio/smg5.mp3","audio/smg6.mp3","audio/smg7.mp3","audio/smg8.mp3"],
+      isBurst: true,
+      weapon2: "Modded Heavy Pistol:Attack: 1d20+<br>Damage: 1d8+2<br>Trauma: 1d6x3<br>Mag: 8/8<br>Spare Mags: 3",
+      weapon2Button: "images/heavypistol.png",        
+      weapon2ShotSounds: ["audio/heavypistol.mp3"],   
+      weapon2Mag: 8,
+      weapon2MaxMag: 8,
+      weapon2SpareMags: 3,
+      abilities: [
+        { name: "Alert Level 2", desc: "You cannot be surprised, not vulnerable to execution attacks, all teammates roll initiative with advantage, you always act first in combat", checked: false, checkbox: false },
+        { name: "Enhanced Reflexes", desc: "Once per scene bonus action", checked: false, checkbox: true },
+        { name: "Veteran's Luck", desc: "Once per scene, either a missed attack on an enemy hits or an attack against you misses", checked: false, checkbox: true }
+      ],
+    }
+  ];
+
+
+const rollSounds = [
+  'audio/roll1.mp3', 'audio/roll2.mp3', 'audio/roll3.mp3', 'audio/roll4.mp3',
+  'audio/roll5.mp3', 'audio/roll6.mp3', 'audio/roll7.mp3', 'audio/roll8.mp3'
+];
+
+function playRandomRollSound() {
+  if (rollSounds.length === 0) return;
+  const idx = Math.floor(Math.random() * rollSounds.length);
+  const audio = new Audio(rollSounds[idx]);
+  audio.volume = 0.35;
+  audio.play().catch(() => {});
+}
+
+
+function rollNoticeOrLead(char, abilityName) {
+  console.log(`Starting ${abilityName} roll for ${char.name}`);
+
+  // Clean previous state
+  closeDiceResults();
+
+  const resultsEl = document.getElementById('dice-results');
+  if (!resultsEl) return;
+
+  resultsEl.classList.add('skill-roll-mode');
+  resultsEl.style.display = 'block';
+
+  // Hide column titles & labels
+  document.querySelectorAll('.dice-column h4, #attack-label, #damage-label, #trauma-label').forEach(el => {
+    el.style.display = 'none';
+  });
+
+  // Hide other columns & overlays
+  document.getElementById('damage-preview').style.display = 'none';
+  document.getElementById('trauma-preview').style.display = 'none';
+  document.querySelectorAll('[id$="-overlay"]').forEach(el => el.style.display = 'none');
+
+  const container = document.getElementById('attack-dice');
+  container.innerHTML = '';           // clear previous dice + result-summary
+
+  const count = 3;
+  const dieType = 'd6';
+
+  const diceElements = [];
+
+  // Create three d6
+  for (let i = 0; i < count; i++) {
+    const die = createDieScene(dieType);
+    if (!die?.renderer) continue;
+
+    const mini = document.createElement('div');
+    mini.className = 'die-mini';
+    mini._die = die;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'die-canvas';
+    wrap.appendChild(die.renderer.domElement);
+    mini.appendChild(wrap);
+
+    const valEl = document.createElement('div');
+    valEl.className = 'die-value';
+    valEl.textContent = '?';
+    mini.appendChild(valEl);
+
+    container.appendChild(mini);
+    diceElements.push({ mini, valEl, die });
+
+    setTimeout(() => {
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      if (w > 0 && h > 0) {
+        die.renderer.setSize(w, h);
+        die.camera.aspect = w / h;
+        die.camera.updateProjectionMatrix();
+      }
+    }, 100);
+  }
+
+  // Generate roll
+  let rolls = Array.from({ length: count }, (_, i) => ({
+    value: Math.floor(Math.random() * 6) + 1,
+    index: i
+  }));
+
+  // Drop lowest
+  let toDrop = [];
+  if (count > 1) {
+    const minV = Math.min(...rolls.map(r => r.value));
+    const cands = rolls.filter(r => r.value === minV);
+    toDrop.push(cands.reduce((a, b) => a.index < b.index ? a : b));
+  }
+
+  const kept = rolls.filter(r => !toDrop.some(d => d.index === r.index));
+  const total = kept.reduce((s, r) => s + r.value, 0);
+
+  // Animation
+  let frame = 0;
+  const cycling = setInterval(() => {
+    frame++;
+    diceElements.forEach(({ valEl }) => {
+      valEl.textContent = Math.floor(Math.random() * 6) + 1;
+    });
+
+    if (frame > 20 + Math.random() * 15) {
+      clearInterval(cycling);
+
+      diceElements.forEach(({ mini, valEl }, i) => {
+        valEl.textContent = rolls[i].value;
+        if (toDrop.some(d => d.index === i)) {
+          mini.classList.add('dropped');
+        }
+      });
+
+      // Clean result (no "drop x" text)
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'result-summary';
+      resultDiv.textContent = `${kept.map(r => r.value).join(' + ')} = ${total}`;
+      container.parentElement.appendChild(resultDiv); // below dice
+
+      playRandomRollSound();
+
+      addToHistory(
+        `${abilityName} (3d6 drop lowest)`,
+        rolls.map(r => r.value),
+        total
+      );
+    }
+  }, 60);
+
+  // Make the whole skill roll area re-rollable
+  const attackPreview = document.getElementById('attack-preview');
+  attackPreview.onclick = () => {
+    // Re-roll same skill
+    rollNoticeOrLead(char, abilityName);
+  };
+  attackPreview.style.cursor = 'pointer';
+}
+
+
+function addToHistory(expression, rolls, total) {
+  rollHistory.unshift({
+    expression,
+    rolls,
+    total,
+    timestamp: new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12:true})
+  });
+  if (rollHistory.length > MAX_HISTORY) rollHistory.pop();
+}
+
+
+function showHistory() {
+  if (!rollHistory.length) {
+    alert("No rolls yet.");  // or better: create proper modal later
+    return;
+  }
+
+  const html = rollHistory.map(entry => `
+    <div class="history-entry">
+      <div class="history-main">
+        ${entry.expression} → [${entry.rolls.join(', ')}]${entry.total ? ` = ${entry.total}` : ''}
+      </div>
+      <div class="history-time">${entry.timestamp}</div>
+    </div>
+  `).join('');
+
+  // Simple modal for now — replace with your preferred modal system
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+  `;
+  modal.innerHTML = `
+    <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; padding:1.5rem;">
+      <h3 style="margin:0 0 1rem; color:#60a5fa;">Roll History</h3>
+      ${html}
+      <button onclick="this.closest('div').parentElement.remove()" style="margin-top:1rem; background:#334155; color:white; border:none; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer;">Close</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+
+// ── 3D Dice Roller Helpers ────────────────────────────────────────────────
+const diceCache = {}; // Reuse scenes to avoid recreating every time
+
+function createDieScene(type = 'd20') {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0f172a); // match your dark theme
+
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  
+  // Adjust camera distance based on die type for better framing in small containers
+  const camDist = {
+    'd4':   7.0,
+    'd6':   6.2,
+    'd8':   6.5,
+    'd10':  7.0,
+    'd12':  7.5,
+    'd20':  6.8,
+    'd100': 8.0
+  }[type] || 6.5;
+  camera.position.set(0, 0, camDist);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(140, 140); // initial size – will be resized later when inserted
+
+  // Lighting – slightly brighter for small/mini view
+  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  dirLight.position.set(5, 8, 6);
+  scene.add(dirLight);
+
+  let geo;
+  const baseScale = 2.2;
+
+  if (type === 'd4') {
+    geo = new THREE.TetrahedronGeometry(baseScale * 0.9);
+    geo.scale(1, 0.75, 1);
+    geo.rotateX(Math.PI * 0.5);
+  } else if (type === 'd6') {
+    geo = new THREE.BoxGeometry(baseScale * 0.9, baseScale * 0.9, baseScale * 0.9);
+  } else if (type === 'd8') {
+    geo = new THREE.OctahedronGeometry(baseScale);
+  } else if (type === 'd10') {
+    geo = createD10Geometry(baseScale); // ← keep your custom d10 if you have it
+  } else if (type === 'd12') {
+    geo = new THREE.DodecahedronGeometry(baseScale * 0.95);
+  } else if (type === 'd20') {
+    geo = new THREE.IcosahedronGeometry(baseScale * 0.95);
+  } else if (type === 'd100') {
+    // Simplified dual d10 style (you can use your full group version)
+    const group = new THREE.Group();
+    const smallScale = 0.9;
+    const d10Geo = createD10Geometry(baseScale * smallScale);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x4c1d95,
+      metalness: 0.25,
+      roughness: 0.35,
+      flatShading: true
+    });
+    const left = new THREE.Mesh(d10Geo, mat);
+    left.position.x = -smallScale * 1.1;
+    group.add(left);
+    const right = new THREE.Mesh(d10Geo, mat);
+    right.position.x = smallScale * 1.1;
+    right.rotation.y = Math.PI * 0.3;
+    group.add(right);
+    geo = group;
+  } else {
+    // Fallback
+    geo = new THREE.BoxGeometry(baseScale, baseScale, baseScale);
+  }
+
+  const material = new THREE.MeshStandardMaterial({
+    color: type === 'd100' ? 0x4c1d95 : 0x2b6cb0,
+    metalness: 0.25,
+    roughness: 0.35,
+    flatShading: true,
+    side: THREE.DoubleSide
+  });
+
+  const mesh = (type === 'd100' && geo instanceof THREE.Group) ? geo : new THREE.Mesh(geo, material);
+  scene.add(mesh);
+
+function createD10Geometry(size) {
+  const gr = (1 + Math.sqrt(1)) / -0.2; 
+  const a = 1 / gr;                   // ≈0.618
+  const scale = size * 0.75;          // Adjust to match your other dice visually
+
+  // 12 vertices (2 poles + 5 upper + 5 lower)
+  const vertices = new Float32Array([
+    // North pole (index 0)
+    0,  scale * 0.9,  0,
+
+    // South pole (index 1)
+    0, -scale * 0.9,  0,
+
+    // Upper pentagon ring (indices 2–6)
+    scale * Math.cos(0 * 2*Math.PI/5),     scale * a, scale * Math.sin(0 * 2*Math.PI/5),
+    scale * Math.cos(1 * 2*Math.PI/5),     scale * a, scale * Math.sin(1 * 2*Math.PI/5),
+    scale * Math.cos(2 * 2*Math.PI/5),     scale * a, scale * Math.sin(2 * 2*Math.PI/5),
+    scale * Math.cos(3 * 2*Math.PI/5),     scale * a, scale * Math.sin(3 * 2*Math.PI/5),
+    scale * Math.cos(4 * 2*Math.PI/5),     scale * a, scale * Math.sin(4 * 2*Math.PI/5),
+
+    // Lower pentagon ring – rotated 36° (indices 7–11)
+    scale * Math.cos(Math.PI/5 + 0 * 2*Math.PI/5),    -scale * a, scale * Math.sin(Math.PI/5 + 0 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 1 * 2*Math.PI/5),    -scale * a, scale * Math.sin(Math.PI/5 + 1 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 2 * 2*Math.PI/5),    -scale * a, scale * Math.sin(Math.PI/5 + 2 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 3 * 2*Math.PI/5),    -scale * a, scale * Math.sin(Math.PI/5 + 3 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 4 * 2*Math.PI/5),    -scale * a, scale * Math.sin(Math.PI/5 + 4 * 2*Math.PI/5),
+  ]);
+
+  // 20 triangle indices (10 kites × 2 triangles each)
+  // Consistent CCW winding from outside
+  const indices = [
+    // North pole faces (0 to upper → lower → upper+1)
+    0, 2, 7,   0, 7, 3,
+    0, 3, 8,   0, 8, 4,
+    0, 4, 9,   0, 9, 5,
+    0, 5,10,   0,10, 6,
+    0, 6,11,   0,11, 2,
+
+    // South pole faces (1 to lower → upper → lower+1)
+    1, 7, 2,   1, 2, 8,
+    1, 8, 3,   1, 3, 9,
+    1, 9, 4,   1, 4,10,
+    1,10, 5,   1, 5,11,
+    1,11, 6,   1, 6, 7
+  ];
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+  geometry.setIndex(indices);
+
+  return geometry;
+}
+
+  // Constant idle spin (runs forever)
+  function animateIdle() {
+    requestAnimationFrame(animateIdle);
+    if (type === 'd100' && mesh instanceof THREE.Group) {
+      mesh.rotation.y += 0.005;
+      mesh.children[0].rotation.x += 0.003;
+      mesh.children[1].rotation.x += 0.004;
+    } else {
+      mesh.rotation.x += 0.004;
+      mesh.rotation.y += 0.006;
+    }
+    renderer.render(scene, camera);
+  }
+  animateIdle();
+
+  return { renderer, scene, camera, mesh, type };
+}
+
+
+
+  let selectedIndex = -1;
+  let previousSelectedIndex = -1;
+
+  const audioCache = {};
+
+  function playRandomSound(sounds) {
+    if (!sounds?.length) return;
+    const idx = Math.floor(Math.random() * sounds.length);
+    const url = sounds[idx];
+    if (!audioCache[url]) audioCache[url] = new Audio(url);
+    const sound = audioCache[url].cloneNode();
+    sound.play().catch(e => console.log("Audio failed:", e));
+  }
+
+  function getEffectiveMax(char) {
+    return char.baseMaxHP + (char.avalanche ? 10 : 0);
+  }
+
+  function getRealHP(char) {
+    return Math.min(char.currentHP, char.baseMaxHP);
+  }
+
+let rollHistory = [];
+const MAX_HISTORY = 15;
+  
+  const list = document.getElementById('character-list');
+  const elements = characters.map((char, i) => {
+    const container = document.createElement('div');
+    container.className = 'character-container';
+    container.dataset.index = i;
+
+    container.innerHTML = `
+      <img src="images/${i+1}.png" alt="${char.name}" class="portrait">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center">
+          <div class="text-lg font-semibold name">${char.name}</div>
+          <div class="hp-change" id="hp-change-${i}"></div>
+        </div>
+        <div class="w-full bg-gray-800 rounded-t h-2.5 overflow-hidden mb-px" id="soak-container-${i}" style="${char.maxSoak > 0 ? '' : 'display:none'}">
+          <div class="soak-bar" id="soak-bar-${i}"></div>
+        </div>
+        <div class="w-full bg-gray-700 rounded h-5 overflow-hidden" id="hp-container-${i}">
+          <div class="health-bar" id="health-bar-${i}"></div>
+        </div>
+        <div class="text-sm text-gray-300 mt-2 hp-text" id="hp-text-${i}"></div>
+        <div class="mt-3 flex items-center gap-3">
+          <label class="flex items-center gap-2 cursor-pointer text-sm select-none">
+            <div class="toggle">
+              <input type="checkbox" id="toggle-${i}">
+              <span class="slider"></span>
+            </div>
+            <span class="text-[#5C8A8F]">Avalanche</span>
+          </label>
+        </div>
+      </div>
+    `;
+
+    list.appendChild(container);
+
+    const hpTextEl = document.getElementById(`hp-text-${i}`);
+    hpTextEl.addEventListener('click', () => {
+      if (char.maxSoak > 0) {
+        char.soak = char.maxSoak;
+        render();
+      }
+    });
+
+    return {
+      container,
+      healthBar: document.getElementById(`health-bar-${i}`),
+      soakBar: document.getElementById(`soak-bar-${i}`),
+      soakContainer: document.getElementById(`soak-container-${i}`),
+      hpText: document.getElementById(`hp-text-${i}`),
+      hpChange: document.getElementById(`hp-change-${i}`),
+      toggle: document.getElementById(`toggle-${i}`)
+    };
+  });
+
+  function render() {
+  // Update previous index at the START of render (so we can compare with last render)
+  const wasSelected = previousSelectedIndex;
+  previousSelectedIndex = selectedIndex;
+
+  // ── Render character list ───────────────────────────────────────
+  characters.forEach((char, i) => {
+    const el = elements[i];
+    const base = char.baseMaxHP;
+    const effMax = getEffectiveMax(char);
+    const hpForBar = Math.min(char.currentHP, base);
+    const hpPct = Math.max(0, Math.min(100, (hpForBar / base) * 100));
+    const soakPct = char.maxSoak > 0 ? Math.max(0, Math.min(100, (char.soak / char.maxSoak) * 100)) : 0;
+
+    el.container.className = `character-container ${i === selectedIndex ? 'selected' : ''} ${char.currentHP <= 0 ? 'dead' : ''}`;
+    el.healthBar.style.width = `${hpPct}%`;
+
+    let hpDisplay = `${char.currentHP}/${base} HP`;
+    if (char.maxSoak > 0) {
+      hpDisplay += ` • <span class="soak-span">Soak: ${char.soak}/${char.maxSoak}</span>`;
+    }
+    el.hpText.innerHTML = hpDisplay;
+
+    if (char.maxSoak > 0) {
+      el.soakContainer.style.display = 'block';
+      el.soakBar.style.width = `${soakPct}%`;
+    } else {
+      el.soakContainer.style.display = 'none';
+    }
+
+    el.toggle.checked = char.avalanche;
+  });
+
+  // ── Character sheet ─────────────────────────────────────────────
+  const sheet = document.getElementById('character-sheet');
+
+  if (selectedIndex >= 0) {
+    const char = characters[selectedIndex];
+
+    // document.getElementById('detail-portrait').src = char.portraitFull;
+
+// And set the variable
+    document.querySelector('.glitch-portrait').style.setProperty('--portrait-url', `url('${char.portraitFull}')`);
+    document.getElementById('detail-name').textContent = char.name;
+
+    const subtitleEl = document.getElementById('detail-subtitle');
+    if (char.subtitle) {
+      subtitleEl.textContent = char.subtitle;
+      subtitleEl.style.display = 'block';
+    } else {
+      subtitleEl.style.display = 'none';
+    }
+
+    document.getElementById('detail-ranged-ac').textContent = char.rangedAC;
+    document.getElementById('detail-melee-ac').textContent = char.meleeAC;
+    document.getElementById('detail-trauma').textContent = char.traumaTarget;
+    document.getElementById('detail-saves').innerHTML = char.saves;
+    document.getElementById('detail-attack-bonus').textContent = char.attackBonus;
+
+    // Primary weapon
+    document.getElementById('weapon-button').style.backgroundImage = `url('${char.weaponButton}')`;
+
+    let weaponHTML = '';
+    const lines = char.weapon.split('<br000000>').filter(line => line.trim());
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed.includes(':')) {
+        const [name, ...restParts] = trimmed.split(':');
+        const rest = restParts.join(':').trim();
+        weaponHTML += `<span class="weapon-name">${name.trim()}:</span> <span class="fine-print">${rest}</span><br>`;
+      } else {
+        weaponHTML += `<span class="fine-print">${trimmed}</span><br>`;
+      }
+    });
+
+    weaponHTML = weaponHTML.replace(
+      /Mag:\s*\d+(\/\d+)?/,
+      `Mag: ${char.mag}/${char.maxMag} <span class="reload-link" onclick="reloadWeapon()">reload</span>`
+    );
+
+    weaponHTML = weaponHTML.replace(
+      /(Spare Mags:)\s*(?:\d+)?/i,
+      `$1 <span class="spare-mags-display" onclick="editSpareMags(event, ${selectedIndex}, 'primary')">${char.spareMags}</span>`
+    );
+
+    document.getElementById('weapon-desc').innerHTML = weaponHTML;
+
+    // Secondary weapon logic (unchanged from your previous version)
+    const w2Section = document.getElementById('weapon2-section');
+    if (char.weapon2) {
+  w2Section.style.display = 'block';
+  document.getElementById('weapon2-button').style.backgroundImage = `url('${char.weapon2Button || "images/placeholder.png"}')`;
+
+  let w2HTML = '';
+  const w2Lines = char.weapon2.split('<br000000>').filter(l => l.trim());
+
+  w2Lines.forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed.includes(':')) {
+      const [namePart, ...rest] = trimmed.split(':');
+      const name = namePart.trim();
+
+      if (name.toLowerCase() === 'thermal blade') {
+    w2HTML += `
+      <span class="weapon-name">${name}:</span>
+      <label class="mini-toggle-label cursor-pointer inline-flex items-center ml-2">
+        <div class="mini-toggle">
+          <input type="checkbox" id="thermal-power-toggle" ${char.thermalBladePowered ? 'checked' : ''}>
+          <span class="mini-slider"></span>
+        </div>
+      </label>
+      <span class="fine-print">${rest.join(':').trim()}</span>
+    `;
+} else {
+    w2HTML += `<span class="weapon-name">${name}:</span> <span class="fine-print">${rest.join(':').trim()}</span>`;
+}
+w2HTML += '<br>';
+    }
+  });
+
+      w2HTML = w2HTML.replace(
+        /Mag:\s*\d+(\/\d+)?/,
+        `Mag: ${char.weapon2Mag}/${char.weapon2MaxMag} <span class="reload-link" onclick="reloadWeapon2()">reload</span>`
+      );
+
+      w2HTML = w2HTML.replace(
+        /(Spare Mags:)\s*(?:\d+)?/i,
+        `$1 <span class="spare-mags-display" onclick="editSpareMags(event, ${selectedIndex}, 'secondary')">${char.weapon2SpareMags}</span>`
+      );
+
+      document.getElementById('weapon2-desc').innerHTML = w2HTML;
+
+    // ── Then attach the event listener to the freshly-created toggle ─────
+    const powerToggle = document.getElementById('thermal-power-toggle');
+    if (powerToggle) {
+        powerToggle.addEventListener('change', (e) => {
+            const isOn = e.target.checked;
+            char.thermalBladePowered = isOn;
+
+            const soundFile = isOn 
+                ? "audio/thermalbladepoweron.mp3" 
+                : "audio/thermalbladepoweroff.mp3";
+
+            const audio = new Audio(soundFile);
+            audio.volume = 0.6;           // ← feel free to change
+            audio.play().catch(err => console.log("Audio play failed:", err));
+        });
+    }
+
+} else {
+    w2Section.style.display = 'none';
+}
+
+      // Fire logic
+      // Primary weapon click
+document.getElementById('weapon-button').onclick = () => {
+  if (char.mag <= 0) return;
+
+  playRandomSound(char.shotSounds);
+
+  // Ammo logic (your existing burst / single shot)
+  if (char.isBurst) {
+    let count = 3;
+    const interval = setInterval(() => {
+      if (char.mag <= 0 || count <= 0) { clearInterval(interval); return; }
+      char.mag -= 1;
+      render();
+      count--;
+    }, 80);
+  } else {
+    char.mag -= 1;
+    render();
+  }
+
+  // NEW: Trigger dice roll animation + results
+  triggerWeaponRoll(char, 'primary');
+};
+
+// Secondary weapon (similar)
+document.getElementById('weapon2-button').onclick = () => {
+  if (char.weapon2Mag <= 0) return;
+
+  playRandomSound(char.weapon2ShotSounds || char.shotSounds);
+
+  char.weapon2Mag -= 1;
+  render();
+
+  triggerWeaponRoll(char, 'secondary');
+};
+
+
+
+
+// Reuse in rollNoticeOrLead by calling:
+// addToHistory(`${abilityName} (3d6 drop lowest)`, rolls.map(r=>r.value), total);
+
+
+
+// Shared roll trigger function
+function triggerWeaponRoll(char, which = 'primary') {
+  closeDiceResults();
+  const resultsEl = document.getElementById('dice-results');
+  resultsEl.style.display = 'block';
+
+  const text = (which === 'primary' ? char.weapon : char.weapon2) || '';
+
+  // ── Parse dice expressions ────────────────────────────────────────
+  let attackDice = 'd20', attackMod = 0;
+  const attMatch = text.match(/Attack:.*?1d20\s*([+-]\d+)/i);
+  if (attMatch) attackMod = parseInt(attMatch[1]);
+
+  let damageDice = 'd8', damageMod = 0, damageCount = 1;
+  const dmgMatch = text.match(/Damage:\s*(\d*)d(\d+)\s*([+-]\d+)?/i);
+  if (dmgMatch) {
+    damageCount = dmgMatch[1] ? parseInt(dmgMatch[1]) || 1 : 1;
+    damageDice = `d${dmgMatch[2]}`;
+    damageMod   = dmgMatch[3] ? parseInt(dmgMatch[3]) : 0;
+  }
+
+let traumaDice = 'd6', traumaCount = 1;
+const traMatch = text.match(/Trauma\s*[:.]?\s*(\d*)d(\d+)(?:\s*x\d+)?/i);
+if (traMatch) {
+  traumaCount = traMatch[1] ? parseInt(traMatch[1]) || 1 : 1;
+  traumaDice  = `d${traMatch[2]}`;
+} else {
+  // Fallback — but log for debugging
+  console.warn("No trauma die found in:", text);
+}
+
+  // ── Prepare display strings ────────────────────────────────
+  const attackStr  = `1d20${attackMod >= 0 ? '+' : ''}${attackMod}`;
+  const damageStr  = `${damageCount > 1 ? damageCount : ''}${damageDice}${damageMod ? (damageMod >= 0 ? '+' : '') + damageMod : ''}`;
+  const traumaStr  = `${traumaCount > 1 ? traumaCount : ''}${traumaDice}`;
+
+  // Set overlay text BEFORE showing previews
+  document.getElementById('attack-label').textContent  = attackStr;
+  document.getElementById('damage-label').textContent  = damageStr;
+  document.getElementById('trauma-label').textContent  = traumaStr;
+
+  // ── Clear old dice ─────────────────────────────────────────
+  const containers = {
+    attack:  document.getElementById('attack-dice'),
+    damage:  document.getElementById('damage-dice'),
+    trauma:  document.getElementById('trauma-dice')
+  };
+  Object.values(containers).forEach(c => c.innerHTML = '');
+
+  document.querySelectorAll('.row-total').forEach(el => el.textContent = '');
+
+// ── Create static preview dice ─────────────────────────────
+function addPreviewDice(container, dieType, count) {
+  for (let i = 0; i < count; i++) {
+    const die = createDieScene(dieType);
+    const mini = document.createElement('div');
+    mini.className = 'die-mini';
+    
+    // ── IMPORTANT: Store the three.js die object so we can change its material later ──
+    mini._die = die;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'die-canvas';
+    wrap.appendChild(die.renderer.domElement);
+    mini.appendChild(wrap);
+
+    // We'll add the value label during rolling
+    container.appendChild(mini);
+
+    // Resize renderer once the element is in the DOM and has size
+    setTimeout(() => {
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      if (w && h) {
+        die.renderer.setSize(w, h);
+        die.camera.aspect = w / h;
+        die.camera.updateProjectionMatrix();
+      }
+    }, 80);
+  }
+}
+
+  
+
+  addPreviewDice(containers.attack,  attackDice,  1);
+  addPreviewDice(containers.damage,  damageDice,  damageCount);
+  addPreviewDice(containers.trauma,  traumaDice,  traumaCount);
+
+
+  // ── Roll logic for one category ────────────────────────────
+// ── Roll logic for one category ────────────────────────────
+  function rollCategory(category, dieType, count, mod = 0) {
+    const cont = containers[category];
+    const overlay = document.getElementById(`${category}-overlay`);
+    const totalEl = document.getElementById(`${category}-total`);
+    const diceEls = cont.children;
+
+    let finalValues = [];
+
+    // Fast cycling animation
+    let frame = 0;
+    const cycling = setInterval(() => {
+      frame++;
+      Array.from(diceEls).forEach(el => {
+        const sides = parseInt(dieType.slice(1));
+        const fake = Math.floor(Math.random() * sides) + 1;
+        let valEl = el.querySelector('.die-value');
+        if (!valEl) {
+          valEl = document.createElement('div');
+          valEl.className = 'die-value';
+          el.appendChild(valEl);
+        }
+        valEl.textContent = fake;
+      });
+
+      // Stop after ~1.2–2.2 seconds of chaos
+      if (frame > 20 + Math.random() * 25) {
+        clearInterval(cycling);
+
+        // Final roll
+        finalValues = [];
+        Array.from(diceEls).forEach((mini, i) => {
+          const sides = parseInt(dieType.slice(1));
+          const v = Math.floor(Math.random() * sides) + 1;
+          finalValues.push(v);
+
+          const valEl = mini.querySelector('.die-value');
+          valEl.textContent = v;
+
+          // Visual crit feedback (only attack for now)
+          if (category === 'attack' && dieType === 'd20') {
+            if (v === 20) {
+              mini.querySelector('canvas').style.background = '#14532d';
+              valEl.classList.add('crit-success');
+            } else if (v === 1) {
+              mini.querySelector('canvas').style.background = '#7f1d1d';
+              valEl.classList.add('crit-fail');
+            }
+          }
+        });
+
+        // Show total
+        const sum = finalValues.reduce((a,b)=>a+b,0) + mod;
+        let eq = finalValues.length > 1 ? finalValues.join(' + ') : finalValues[0];
+        totalEl.textContent = `${eq} ${mod ? (mod >= 0 ? '+ ' : '− ') + Math.abs(mod) : ''} = ${sum}`;
+
+        // Fade out overlay
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 450);
+      }
+    }, 60);
+    playRandomRollSound();
+
+    // Start fade-out immediately on click
+    overlay.style.opacity = '0';
+  }
+
+  // ── Wire up clicks ──────────────────────────────────────────
+  document.getElementById('attack-preview').onclick = () =>
+    rollCategory('attack', attackDice, 1, attackMod);
+
+  document.getElementById('damage-preview').onclick = () =>
+    rollCategory('damage', damageDice, damageCount, damageMod);
+
+  document.getElementById('trauma-preview').onclick = () =>
+    rollCategory('trauma', traumaDice, traumaCount, 0);
+ 
+  rollCategory('attack', attackDice, 1, attackMod);
+}
+  
+
+
+
+      window.reloadWeapon = () => {
+        if (char.spareMags > 0 && char.mag < char.maxMag) {
+          char.mag = char.maxMag;
+          char.spareMags--;
+          playRandomSound(["audio/reload1.mp3", "audio/reload2.mp3"]);
+          render();
+        }
+      };
+
+      window.reloadWeapon2 = () => {
+      if (char.weapon2SpareMags > 0 && char.weapon2Mag < char.weapon2MaxMag) {
+        char.weapon2Mag = char.weapon2MaxMag;
+        char.weapon2SpareMags--;
+        playRandomSound(["audio/reload1.mp3", "audio/reload2.mp3"]);
+        render();
+      }
+    };
+
+      window.editSpareMags = (e, idx, which = 'primary') => {
+    const span = e.target;
+    const char = characters[idx];
+    let current, field;
+
+    if (which === 'secondary') {
+      current = char.weapon2SpareMags ?? 0;
+      field = 'weapon2SpareMags';
+    } else {
+      current = char.spareMags;
+      field = 'spareMags';
+    }
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = 0;
+    input.value = current;
+    input.style.width = '40px';
+    input.style.fontSize = '0.85rem';
+    input.onblur = () => {
+      const val = parseInt(input.value, 10);
+      if (!isNaN(val) && val >= 0) {
+        char[field] = val;
+      }
+      render();
+    };
+    input.onkeydown = ev => {
+      if (ev.key === 'Enter') input.blur();
+    };
+    span.replaceWith(input);
+    input.focus();
+  };
+
+      // Abilities
+const abilitiesEl = document.getElementById('detail-abilities');
+abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
+  let html = '<div class="ability-row">';
+  
+  const isClickable = ab.isRollable && selectedIndex === characters.findIndex(c => c.name === "KB");
+  
+  if (ab.checkbox) {
+    html += `<input type="checkbox" id="ability-${selectedIndex}-${idx}" ${ab.checked ? 'checked' : ''}>`;
+  }
+  
+  const labelClass = isClickable ? 'cursor-pointer hover:text-[#60a5fa]' : '';
+  
+  html += `
+    <label for="${ab.checkbox ? `ability-${selectedIndex}-${idx}` : ''}" class="${labelClass}"
+    ${isClickable ? `onclick="rollNoticeOrLead(characters[${selectedIndex}], '${ab.name.replace(/'/g,"\\'")}')"` : ''}>
+      <span class="font-bold">${ab.name.trim()}</span>
+      ${ab.desc ? `<br><span class="fine-print">${ab.desc}</span>` : ''}
+    </label>
+  </div>`;
+  return html;
+}).join('');
+
+      sheet.classList.add('visible');
+    } else {
+      sheet.classList.remove('visible');
+  }
+
+  // ── IMPORTANT: Reset dice results when changing character ──────
+  if (selectedIndex !== wasSelected) {
+    closeDiceResults();   // ← this must exist — see below
+  }
+}
+
+  function closeDiceResults() {
+  const resultsEl = document.getElementById('dice-results');
+  if (!resultsEl) return;
+
+  resultsEl.style.display = 'none';
+  resultsEl.classList.remove('skill-roll-mode');
+
+  // Show titles & labels again (for weapon rolls)
+  document.querySelectorAll('.dice-column h4, #attack-label, #damage-label, #trauma-label').forEach(el => {
+    el.style.display = '';
+  });
+
+  // Show columns again
+  document.getElementById('damage-preview').style.display = '';
+  document.getElementById('trauma-preview').style.display = '';
+
+  // Remove any leftover result-summary
+  document.querySelectorAll('.result-summary').forEach(el => el.remove());
+
+  // Reset overlays
+  const overlays = [
+    { overlay: 'attack-overlay', label: 'attack-label', default: 'Roll Attack' },
+    { overlay: 'damage-overlay', label: 'damage-label', default: 'Roll Damage' },
+    { overlay: 'trauma-overlay',  label: 'trauma-label',  default: 'Roll Trauma' }
+  ];
+
+  overlays.forEach(({ overlay, label, default: def }) => {
+    const ovEl = document.getElementById(overlay);
+    const lblEl = document.getElementById(label);
+    if (ovEl) {
+      ovEl.style.opacity = '1';
+      ovEl.style.display = 'flex';
+    }
+    if (lblEl) lblEl.textContent = def;
+  });
+
+  // Clear dice & totals
+  ['attack-dice', 'damage-dice', 'trauma-dice'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
+  document.querySelectorAll('.row-total').forEach(el => el.textContent = '');
+}
+
+
+  function updateHealth(delta) {
+    if (selectedIndex < 0) return;
+    const char = characters[selectedIndex];
+    const el = elements[selectedIndex];
+    const base = char.baseMaxHP;
+    const effMax = getEffectiveMax(char);
+
+    const oldHP = char.currentHP;
+    const oldSoak = char.soak;
+
+    if (delta > 0) {
+      let rem = delta;
+      if (getRealHP(char) < base) {
+        const heal = Math.min(rem, base - getRealHP(char));
+        char.currentHP += heal;
+        rem -= heal;
+      }
+      if (rem > 0 && char.maxSoak > 0 && getRealHP(char) >= base && char.soak < char.maxSoak) {
+        const add = Math.min(rem, char.maxSoak - char.soak);
+        char.soak += add;
+        rem -= add;
+      }
+      if (rem > 0 && char.avalanche && char.currentHP < effMax) {
+        char.currentHP = Math.min(effMax, char.currentHP + rem);
+      }
+    } else {
+      let dmg = -delta;
+      if (char.maxSoak > 0 && char.soak > 0) {
+        const absorb = Math.min(dmg, char.soak);
+        char.soak -= absorb;
+        dmg -= absorb;
+      }
+      if (dmg > 0 && char.currentHP > base) {
+        const buf = Math.min(dmg, char.currentHP - base);
+        char.currentHP -= buf;
+        dmg -= buf;
+      }
+      if (dmg > 0) {
+        char.currentHP = Math.max(0, char.currentHP - dmg);
+      }
+    }
+
+    if (char.currentHP !== oldHP || char.soak !== oldSoak) {
+      char.changeCounter += delta;
+      el.hpChange.textContent = char.changeCounter > 0 ? `+${char.changeCounter}` : char.changeCounter;
+      el.hpChange.style.display = 'inline-block';
+      el.hpChange.classList.remove('hp-change');
+      void el.hpChange.offsetWidth;
+      el.hpChange.classList.add('hp-change');
+
+      if (char.changeTimeout) clearTimeout(char.changeTimeout);
+      char.changeTimeout = setTimeout(() => {
+        el.hpChange.style.display = 'none';
+        char.changeCounter = 0;
+      }, 1000);
+    }
+
+    render();
+  }
+
+  function toggleAvalanche(i) {
+    const char = characters[i];
+    const was = char.avalanche;
+    char.avalanche = !char.avalanche;
+    if (char.avalanche && !was) char.currentHP += 10;
+    else if (!char.avalanche && was) char.currentHP = Math.min(char.baseMaxHP, char.currentHP);
+    render();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+  const resultsEl = document.getElementById('dice-results');
+  if (resultsEl && resultsEl.style.display !== 'none') {
+    // First close dice if visible
+    closeDiceResults();
+  } else {
+    // Then close sheet
+    selectedIndex = -1;
+    render();
+  }
+  return;
+}
+
+    // Prevent up/down from scrolling the page
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+    }
+
+    if (e.key === 'ArrowRight') {
+      selectedIndex = (selectedIndex + 1) % characters.length;
+      if (selectedIndex === -1) selectedIndex = 0;
+      window.scrollTo(0, 0);
+      render();
+    } else if (e.key === 'ArrowLeft') {
+      selectedIndex = (selectedIndex - 1 + characters.length) % characters.length;
+      window.scrollTo(0, 0);
+      render();
+    } else if (e.key === 'ArrowUp') {
+      updateHealth(1);
+    } else if (e.key === 'ArrowDown') {
+      updateHealth(-1);
+    }
+  });
+
+list.addEventListener('click', e => {
+  const container = e.target.closest('.character-container');
+  if (container) {
+    selectedIndex = parseInt(container.dataset.index);
+    window.scrollTo(0, 0);         
+    render();
+  }
+});
+
+  document.addEventListener('change', e => {
+    if (e.target.type === 'checkbox') {
+      if (e.target.id.startsWith('toggle-')) {
+        const i = parseInt(e.target.id.split('-')[1]);
+        toggleAvalanche(i);
+      } else if (e.target.id.startsWith('ability-')) {
+        const [_, charIdx, abIdx] = e.target.id.split('-');
+        characters[charIdx].abilities[abIdx].checked = e.target.checked;
+        render();
+      }
+    }
+  });
+
+render();
+  selectedIndex = 0;
+  render();
+
+  // Now wire the button safely
+  const historyBtn = document.getElementById('history-btn');
+  if (historyBtn) {
+    historyBtn.onclick = showHistory;
+    console.log("History button wired successfully");
+  } else {
+    console.warn("History button still not found — check HTML placement");
+  }
+</script>
+</body>
+</html>

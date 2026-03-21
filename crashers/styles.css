@@ -1,0 +1,567 @@
+body {
+      background: #0d1117;
+      font-family: 'Courier New', Courier, monospace;
+      color: #d1e0e8;
+    }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 3px,
+    rgba(35, 43, 44, 0.2) 1px,
+    transparent 5px
+  );
+  background-size: 10% 3px;          
+  mix-blend-mode: multiply;
+  z-index: 9999;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(176, 136, 136, 0.04) 0%,
+    transparent 5%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.9;
+  z-index: 9999;
+  animation: phosphor-flicker 1s infinite alternate;
+}
+
+@keyframes phosphor-flicker {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 0.9; }
+}
+
+
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 49%,
+    rgba(255,0,220,0.07) 50%,
+    transparent 51%
+  );
+  background-size: 100% 300%;
+  pointer-events: none;
+  z-index: 9998;
+  animation: vhs-roll 6s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.25;
+}
+
+@keyframes vhs-roll {
+  0%   { background-position: 0 120%; }
+  100% { background-position: 0 0%; }
+}
+
+
+#character-sheet,
+.character-container {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  filter: brightness(1.3) contrast(1.1);
+}
+
+#character-sheet::before,
+.character-container::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 
+    inset 0 0 80px rgba(0,0,0,0.4),
+    inset 0 0 160px rgba(0,0,0,0.2);
+  pointer-events: none;
+  z-index: 10;
+}
+
+#character-sheet {
+  filter: brightness(1.3) contrast(1.1);
+}
+
+
+
+
+
+.glitch-img {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch-img img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.glitch-img::before,
+.glitch-img::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: inherit;
+  background-size: cover;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+@keyframes glitch-anim {
+  0%   { clip-path: inset(0 0 0 0); }
+  5%   { clip-path: inset(2% 0 8% 0); }
+  10%  { clip-path: inset(8% 0 2% 0); }
+  15%  { clip-path: inset(0 5% 0 5%); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+    .health-bar {
+      background: linear-gradient(to right, #dc2626, #b91c1c, #dc2626);
+      height: 100%;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+      transition: width 0.2s ease-in-out;
+    }
+    .soak-bar {
+      background: linear-gradient(to right, #6b7280, #4b5563, #6b7280);
+      height: 100%;
+      border-radius: 4px 4px 0 0;
+      box-shadow: 0 0 6px rgba(107, 114, 128, 0.7);
+      transition: width 0.2s ease-in-out;
+    }
+    .soak-span {
+      transition: all 0.15s;
+    }
+    .soak-span:hover {
+      text-decoration: underline;
+      color: #7aa8ac;
+      cursor: pointer;
+    }
+    .character-container {
+      height: 150px;
+      min-width: 300px;
+      flex: 1 1 300px;
+      background: #1a2332;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: border-color 0.2s ease-in-out, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .character-container.selected {
+      border-color: #5C8A8F;
+      box-shadow: 0 0 12px rgba(92, 138, 143, 0.5);
+    }
+    .portrait {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #2E4A4E;
+    }
+    .dead .portrait {
+      filter: grayscale(100%);
+    }
+    .dead .name {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+    .hp-change {
+      margin-left: 0.75rem;
+      color: #facc15;
+      font-size: 1rem;
+      font-weight: bold;
+      animation: bounce 0.4s ease-in-out;
+    }
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+    #character-list {
+      display: flex;
+      flex-direction: row;
+      gap: 1.5rem;
+      justify-content: space-around;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 1.5rem 1rem;
+      width: 100%;
+    }
+    #character-sheet {
+      display: none;
+      margin-top: 1.5rem;
+      width: 100%;
+      max-width: 820px;
+      background: #0f172a;
+      border: 2px solid #436A6E;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(67, 106, 110, 0.35), inset 0 0 10px rgba(67, 106, 110, 0.12);
+      padding: 1.25rem;
+    }
+    #character-sheet.visible {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .sheet-header {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+    #detail-subtitle {
+      font-size: 0.8rem;  
+      margin-top: -10px;         
+      font-weight: normal;         
+      color: #94a3b8;             
+      font-style: italic;          
+      letter-spacing: 0.5px;
+      line-height: 1.3;
+    }
+    .portrait-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      width: 180px;
+      flex-shrink: 0;
+    }
+    .full-portrait {
+      width: 180px;
+      height: 240px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 0 15px rgba(67, 106, 110, 0.5);
+    }
+    .weapon-button, .weapon2-button {
+      width: 180px;
+      height: 80px;
+      border-radius: 10px;
+      border: 2px solid #436A6E;
+      box-shadow: 0 0 10px rgba(67, 106, 110, 0.4);
+      transition: all 0.1s ease;
+      cursor: pointer;
+      background-size: cover;
+      background-position: center;
+    }
+    .weapon-button:hover, .weapon2-button:hover {
+      box-shadow: 0 0 18px rgba(67, 106, 110, 0.75);
+      transform: scale(1.005);
+    }
+    .weapon-button:active, .weapon2-button:active {
+      transform: scale(0.97);
+      box-shadow: 0 0 6px rgba(67, 106, 110, 0.5);
+    }
+    .weapon-desc {
+      font-size: 0.85rem;
+      line-height: 1.1;
+      color: #c0d0d8;
+      text-align: left;
+      width: 100%;
+    }
+    .weapon-name {
+        display: inline !important;
+      font-weight: bold;
+      color: #5C8A8F;
+      display: block;
+    }
+    .fine-print {
+      color: #a0b0c0;
+      font-size: 0.75rem;
+      display: block;
+      margin-top: 0.05rem;
+      margin-bottom: 1rem;
+    }
+    .spare-mags-display {
+      font-size: 1.25em;
+      color: #5C8A8F;
+      cursor: pointer;
+    }
+    .spare-mags-display:hover {
+      color: #7aa8ac;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.2rem 1rem;
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
+    .stats-grid dt {
+      color: #5C8A8F;
+      font-weight: bold;
+    }
+    .stats-grid dd {
+      margin: 0;
+      color: #cbd5e1;
+    }
+    .abilities-section {
+      margin-top: 0.4rem;
+    }
+    .abilities-title {
+      font-weight: bold;
+      color: #5C8A8F;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .abilities-list {
+      font-size: 0.88rem;
+      line-height: 1.12;
+      color: #c0d0d8;
+    }
+.ability-row {
+  display: flex;
+  align-items: flex-start;    
+  gap: 0.5rem;                   
+  padding-left: 1.25rem;
+}
+
+.ability-row input[type="checkbox"] {
+  margin-left: -1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.03rem;            
+  position: relative;
+  top: 2px;                     
+}
+    .reload-link {
+      color: #5C8A8F;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-left: 0.4rem;
+    }
+    .reload-link:hover {
+      color: #7aa8ac;
+    }
+    .hp-text {
+      letter-spacing: -0.5px;
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 26px;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #2E4A4E;
+      transition: .3s;
+      border-radius: 26px;
+      box-shadow: inset 0 0 6px rgba(0,0,0,0.6);
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #d1e0e8;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255,255,255,0.4);
+    }
+    input:checked + .slider {
+      background-color: #01a4b6;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+
+
+    .dice-row {
+  text-align: center;
+}
+.row-title {
+  font-size: 1.3rem;
+  color: #60a5fa;
+  margin-bottom: 0.75rem;
+  font-weight: bold;
+}
+.die-mini {
+  width: 110px;
+  height: 140px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.die-canvas {
+  width: 90px;
+  height: 100px;
+  margin-bottom: -70px;
+}
+.die-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 1px 4px black;
+}
+.die-value.crit-success { color: #86efac; text-shadow: 0 0 8px #22c55e; }
+.die-value.crit-fail    { color: #fca5a5; text-shadow: 0 0 8px #ef4444; }
+
+.dice-preview {
+  min-height: 160px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.dice-preview:hover {
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+.dice-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-toggle {
+  position: relative;
+  width: 36px;        
+  height: 18px;     
+  margin-left: -8px;     
+}
+
+.mini-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.mini-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #2E4A4E;
+  transition: .25s;              
+  border-radius: 18px;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.mini-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #d1e0e8;
+  transition: .25s;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+
+.mini-toggle input:checked + .mini-slider {
+  background-color: #01a4b6;      /* same active color as main toggle */
+}
+
+.mini-toggle input:checked + .mini-slider:before {
+  transform: translateX(18px);    /* 36px width - 14px knob - 4px padding */
+}
+
+.die-mini.dropped {
+  opacity: 0.45;
+  filter: grayscale(70%);
+}
+
+.die-mini.dropped .die-value {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.result-text {
+  text-align: center;
+  font-weight: bold;
+}
+
+
+/* For skill rolls: unified row look */
+.skill-roll-mode #dice-results .dice-column h4 {
+  display: none;  /* hide Attack / Damage / Trauma titles */
+}
+
+.skill-roll-mode .dice-containers {
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  gap: 16px !important;
+}
+
+.skill-roll-mode .dice-preview {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.skill-roll-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Skill roll specific overrides */
+.skill-roll-mode .dice-column h4,
+.skill-roll-mode #attack-label,
+.skill-roll-mode #damage-label,
+.skill-roll-mode #trauma-label {
+  display: none !important;
+}
+
+.skill-roll-mode .dice-preview {
+  cursor: pointer;           /* indicates clickable */
+}
+
+.skill-roll-mode .overlay,
+.skill-roll-mode [id$="-overlay"] {
+  display: none !important;  /* kill all overlays */
+}
+
+.result-summary {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffffff;
+  margin-top: 0rem;
+  padding: 1rem;
+  max-width: 400px;
+}
+
+
+
+/* Make dropped die more obvious but clean */
+.die-mini.dropped {
+  opacity: 0.45;
+  filter: grayscale(80%);
+}
+
+.die-mini.dropped .die-value {
+  color: #94a3b8;
+}
