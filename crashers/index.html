@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="d20icon.png">
   <link rel="stylesheet" type="text/css" href="styles.css">
   <link rel="stylesheet" type="text/css" href="glitch-portrait.css">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -89,8 +90,20 @@
     </div>
   </div>
 
+<div id="custom-dice-panel" style="
+  position: fixed;
+  right: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4.7px;
+">
 
-  <button id="history-btn" style="
+</div>
+
+
+<button id="history-btn" style="
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -126,7 +139,7 @@
       attackBonus: "5",
       weapon: "Modded SMG:Attack:1d20+10<br><small>(DEX+Shoot+Attack Bonus+Burst)</small><br><br>Damage: 1d8+5<br><small>(DEX+Mod+Burst)</small><br><br>Trauma 1d6x2<br>Mag: 30/30<br>Spare Mags: 6",
       weaponButton: "images/smg.png",
-      weapon2: "Thermal Blade:Attack: 1d20+6<br><small>(DEX+Attack Bonus)</small><br><br>Damage: 1d10+2<br>Trauma: 1d8x3<br>Shock: 6/AC 15",
+      weapon2: "Thermal Blade:Attack: 1d20+6<br><small>(DEX+Attack Bonus)</small><br><br>Damage: 1d10+3<br>Trauma: 1d8x3<br>Shock: 6/AC 15",
       thermalBladePowered: false,
       weapon2Button: "images/thermalblade.png",         
       weapon2ShotSounds: ["audio/thermalbladeattack.mp3"],     
@@ -572,12 +585,7 @@ function createDieScene(type = 'd20') {
     const group = new THREE.Group();
     const smallScale = 0.9;
     const d10Geo = createD10Geometry(baseScale * smallScale);
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0x4c1d95,
-      metalness: 0.25,
-      roughness: 0.35,
-      flatShading: true
-    });
+    const mat = new THREE.MeshStandardMaterial({color:0x2b6cb0, metalness:0.25, roughness:0.35, side:THREE.DoubleSide, flatShading:true});
     const left = new THREE.Mesh(d10Geo, mat);
     left.position.x = -smallScale * 1.1;
     group.add(left);
@@ -1271,6 +1279,38 @@ abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
 }
 
 
+function updateDicePanelPosition() {
+  const panel = document.getElementById('custom-dice-panel');
+  const charList = document.getElementById('character-list');
+  
+
+  if (!panel || !charList) return;
+
+  // Get bounding rects relative to viewport
+  const listRect = charList.getBoundingClientRect();
+  const listBottom = listRect.bottom;           
+  const viewportHeight = window.innerHeight;
+
+  if (listBottom > 0) {
+    const desiredTop = listBottom + 7;
+    panel.style.top = `${desiredTop}px`;
+    panel.style.bottom = 'auto';
+  } else {
+    panel.style.top = '7px';
+    panel.style.bottom = 'auto';
+  }
+}
+
+// Run once on load
+updateDicePanelPosition();
+
+// Update on scroll
+window.addEventListener('scroll', updateDicePanelPosition);
+
+// Optional: also update on resize (viewport height changes)
+window.addEventListener('resize', updateDicePanelPosition);
+
+
   function updateHealth(delta) {
     if (selectedIndex < 0) return;
     const char = characters[selectedIndex];
@@ -1344,11 +1384,7 @@ abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
     if (e.key === 'Escape') {
   const resultsEl = document.getElementById('dice-results');
   if (resultsEl && resultsEl.style.display !== 'none') {
-    // First close dice if visible
     closeDiceResults();
-  } else {
-    // Then close sheet
-    selectedIndex = -1;
     render();
   }
   return;
@@ -1401,14 +1437,276 @@ render();
   selectedIndex = 0;
   render();
 
-  // Now wire the button safely
-  const historyBtn = document.getElementById('history-btn');
-  if (historyBtn) {
-    historyBtn.onclick = showHistory;
-    console.log("History button wired successfully");
-  } else {
-    console.warn("History button still not found — check HTML placement");
+
+  // Custom dice state
+const customDice = {
+  d4:   { count: 0 },
+  d6:   { count: 0 },
+  d8:   { count: 0 },
+  d10:  { count: 0 },
+  d12:  { count: 0 },
+  d20:  { count: 0 },
+  d100: { count: 0 }
+};
+
+
+function performCustomRoll() {
+  const parts = [];
+  let totalDice = 0;
+
+  for (const [type, data] of Object.entries(customDice)) {
+    if (data.count > 0) {
+      parts.push(`${data.count}${type}`);
+      totalDice += data.count;
+    }
   }
+
+  if (totalDice === 0) return; // nothing to roll
+
+  const expression = parts.join(' + ');
+
+  // Show dice area
+  closeDiceResults();
+  const resultsEl = document.getElementById('dice-results');
+  if (resultsEl) {
+    resultsEl.style.display = 'block';
+    resultsEl.classList.add('skill-roll-mode');
+  }
+
+  // Hide weapon-specific columns
+  document.querySelectorAll('.dice-column h4, [id$="-overlay"]').forEach(el => el.style.display = 'none');
+  const damagePrev = document.getElementById('damage-preview');
+  const traumaPrev = document.getElementById('trauma-preview');
+  if (damagePrev) damagePrev.style.display = 'none';
+  if (traumaPrev) traumaPrev.style.display = 'none';
+
+  // Use attack column for custom roll
+  const container = document.getElementById('attack-dice');
+  if (container) container.innerHTML = '';
+
+  const diceElements = [];
+  let rollResults = [];
+
+  for (const [type, {count}] of Object.entries(customDice)) {
+    if (count === 0) continue;
+    for (let i = 0; i < count; i++) {
+      const die = createDieScene(type);
+      if (!die?.renderer) continue;
+
+      const mini = document.createElement('div');
+      mini.className = 'die-mini';
+      mini._die = die;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'die-canvas';
+      wrap.appendChild(die.renderer.domElement);
+      mini.appendChild(wrap);
+
+      const valEl = document.createElement('div');
+      valEl.className = 'die-value';
+      valEl.textContent = '?';
+      mini.appendChild(valEl);
+
+      container.appendChild(mini);
+      diceElements.push({ mini, valEl, type });
+    }
+  }
+
+  // Once rolled, clear the custom selection
+  Object.values(customDice).forEach(d => d.count = 0);
+  updateCustomDiceUI();
+
+  // Resize after inserted
+  setTimeout(() => {
+    diceElements.forEach(({mini}) => {
+      const wrap = mini.querySelector('.die-canvas');
+      if (!wrap) return;
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      if (w > 0 && h > 0) {
+        mini._die.renderer.setSize(w, h);
+        mini._die.camera.aspect = w / h;
+        mini._die.camera.updateProjectionMatrix();
+      }
+    });
+  }, 120);
+
+  // Roll animation
+  let frame = 0;
+const cycling = setInterval(() => {
+  frame++;
+  diceElements.forEach(({valEl}) => {
+    valEl.textContent = Math.floor(Math.random() * 20) + 1;
+  });
+
+  if (frame > 25 + Math.random() * 20) {
+    clearInterval(cycling);
+
+    let sum = 0;
+    const individualRolls = [];
+    const rollStrings = []; // for nice display
+
+    diceElements.forEach(({valEl, type}) => {
+      const sides = parseInt(type.slice(1));
+      const v = Math.floor(Math.random() * sides) + 1;
+      valEl.textContent = v;
+      sum += v;
+      individualRolls.push(v);
+      
+      // Collect for display
+      rollStrings.push(v.toString());
+    });
+
+      const rollsDisplay = rollStrings.join(' + ');
+    const resultText = rollsDisplay 
+      ? `${rollsDisplay} = ${sum}`
+      : `${expression} = ${sum}`; // fallback if no dice somehow
+
+    // Display total
+    const resultDiv = document.createElement('div');
+    resultDiv.className = 'result-summary';
+    resultDiv.textContent = resultText;
+    if (container?.parentElement) container.parentElement.appendChild(resultDiv);
+
+      // Log
+      addToHistory(`Custom roll: ${expression}`, individualRolls, sum);
+
+      playRandomRollSound();
+      if (typeof scrollToDiceResults === 'function') scrollToDiceResults();
+
+    }
+  }, 60);
+}
+
+
+function resetCustomDice() {
+    Object.values(customDice).forEach(d => d.count = 0);
+  updateCustomDiceUI();
+
+  // Only close results if the dice area is currently visible
+  const resultsEl = document.getElementById('dice-results');
+  if (resultsEl && resultsEl.style.display !== 'none') {
+    closeDiceResults();
+  }
+  
+  // Update the UI (multipliers disappear)
+  updateCustomDiceUI();
+}
+
+function updateCustomDiceUI() {
+  const panel = document.getElementById('custom-dice-panel');
+  if (!panel) {
+    console.warn("Custom dice panel not found");
+    return;
+  }
+
+  panel.innerHTML = '';
+
+  const diceTypes = ['d4','d6','d8','d10','d12','d20','d100'];
+
+  diceTypes.forEach(type => {
+  const btn = document.createElement('div');
+  btn.className = 'custom-die-btn';
+
+  btn.dataset.type = type;
+
+  // Create mini die canvas
+  const die = createDieScene(type);
+  const canvasWrap = document.createElement('div');
+  canvasWrap.style.cssText = 'opacity:100%; width:100%; height:100%; position:absolute; inset:0; border-radius:50%; overflow:hidden;';
+  canvasWrap.appendChild(die.renderer.domElement);
+
+  // Force small size
+  setTimeout(() => {
+    die.renderer.setSize(48, 48);
+    die.camera.aspect = 1;
+    die.camera.updateProjectionMatrix();
+  }, 50);
+
+  btn.appendChild(canvasWrap);
+
+  const label = document.createElement('div');
+label.className = 'die-label';
+label.textContent = type.toUpperCase();  // or "d4", "d6", etc.
+btn.appendChild(label);
+
+
+    const mult = document.createElement('div');
+    mult.className = 'multiplier';
+    if (customDice[type].count > 0) {
+      mult.textContent = `${customDice[type].count}×`;
+      mult.classList.add('visible');
+    }
+    btn.appendChild(mult);
+
+
+    const resetX = document.createElement('div');
+    resetX.className = 'reset-x';
+    resetX.textContent = '×';
+    if (customDice[type].count > 0) resetX.classList.add('visible');
+    resetX.onclick = e => {
+      e.stopPropagation();
+      customDice[type].count = 0;
+      updateCustomDiceUI();
+    };
+    btn.appendChild(resetX);
+
+    btn.onclick = () => {
+      customDice[type].count = (customDice[type].count + 1) % 21;
+      if (customDice[type].count === 0) customDice[type].count = 1;
+      updateCustomDiceUI();
+    };
+
+    panel.appendChild(btn);
+  });
+
+  // Roll button
+  const rollBtn = document.createElement('button');
+  rollBtn.id = 'roll-custom-btn';
+  rollBtn.textContent = 'Roll';
+  rollBtn.onclick = performCustomRoll;
+  panel.appendChild(rollBtn);
+
+  // Reset button
+  const resetBtn = document.createElement('button');
+  resetBtn.id = 'reset-custom-btn';
+  resetBtn.textContent = '⟲';
+  resetBtn.onclick = resetCustomDice;
+  panel.appendChild(resetBtn);
+}
+
+function initCustomDice() {
+  setTimeout(() => {
+    updateCustomDiceUI();
+
+    const histBtn = document.getElementById('history-btn');
+    if (histBtn) {
+      histBtn.onclick = showHistory;
+      console.log("History button wired");
+    } else {
+      console.warn("History button still missing from DOM");
+    }
+  }, 400);
+}
+
+
+render();
+selectedIndex = 0;
+render();
+
+const historyBtn = document.getElementById('history-btn');
+if (historyBtn) {
+  historyBtn.onclick = showHistory;
+}
+
+
+initCustomDice();  
+
+window.addEventListener('resize', () => {
+  updateCustomDiceUI(); // rebuilds safely
+});
+
+
 </script>
 </body>
 </html>
