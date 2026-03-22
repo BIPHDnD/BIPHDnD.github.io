@@ -1467,6 +1467,8 @@ function performCustomRoll() {
 
   // Show dice area
   closeDiceResults();
+  scrollToDiceResults();
+
   const resultsEl = document.getElementById('dice-results');
   if (resultsEl) {
     resultsEl.style.display = 'block';
