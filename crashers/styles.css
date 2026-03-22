@@ -565,3 +565,31 @@ body::after {
 .die-mini.dropped .die-value {
   color: #94a3b8;
 }
+
+
+.history-entry {
+  padding: 8px 0;
+  border-bottom: 1px solid #334155;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.history-main {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.history-time {
+  color: #64748b;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  min-width: 54px;
+  text-align: right;
+  opacity: 0.85;
+}

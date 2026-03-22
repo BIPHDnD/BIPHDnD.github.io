@@ -247,7 +247,7 @@
       spareMags: 4,
       shotSounds: ["audio/smg1.mp3","audio/smg2.mp3","audio/smg3.mp3","audio/smg4.mp3","audio/smg5.mp3","audio/smg6.mp3","audio/smg7.mp3","audio/smg8.mp3"],
       isBurst: true,
-      weapon2: "Modded Heavy Pistol:Attack: 1d20+<br>Damage: 1d8+2<br>Trauma: 1d6x3<br>Mag: 8/8<br>Spare Mags: 3",
+      weapon2: "Modded Heavy Pistol:Attack: 1d20+6<br>Damage: 1d8+2<br>Trauma: 1d6x3<br>Mag: 8/8<br>Spare Mags: 3",
       weapon2Button: "images/heavypistol.png",        
       weapon2ShotSounds: ["audio/heavypistol.mp3"],   
       weapon2Mag: 8,
@@ -281,6 +281,8 @@ function rollNoticeOrLead(char, abilityName) {
 
   // Clean previous state
   closeDiceResults();
+
+  const cleanName = abilityName.replace(/^Specialist:\s*/i, '').trim();
 
   const resultsEl = document.getElementById('dice-results');
   if (!resultsEl) return;
@@ -382,10 +384,15 @@ function rollNoticeOrLead(char, abilityName) {
 
       playRandomRollSound();
 
-      addToHistory(
-        `${abilityName} (3d6 drop lowest)`,
-        rolls.map(r => r.value),
-        total
+// After determining toDrop
+const droppedIdx = toDrop.length > 0 ? [toDrop[0].index] : [];
+
+// Then when logging:
+addToHistory(
+  `${cleanName} (3d6 drop lowest)`,
+  rolls.map(r => r.value),
+  total,
+  droppedIdx
       );
     }
   }, 60);
@@ -397,15 +404,52 @@ function rollNoticeOrLead(char, abilityName) {
     rollNoticeOrLead(char, abilityName);
   };
   attackPreview.style.cursor = 'pointer';
+  scrollToDiceResults();
 }
 
 
-function addToHistory(expression, rolls, total) {
+function scrollToDiceResults(smooth = true) {
+  const diceEl = document.getElementById('dice-results');
+  if (!diceEl) return;
+
+  // Small delay so DOM has time to show the element
+  setTimeout(() => {
+    diceEl.scrollIntoView({
+      behavior: smooth ? 'smooth' : 'auto',
+      block: 'start',          // try 'center' if you prefer it more centered
+      inline: 'nearest'
+    });
+  }, 80);
+}
+
+
+function scrollToSelectedCharacter() {
+  if (window.innerWidth >= 768) return; // skip on desktop/tablet
+
+  const container = document.querySelector('.character-container.selected');
+  if (!container) return;
+
+  setTimeout(() => {
+    container.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',     // or 'center'
+      inline: 'center'
+    });
+  }, 120);
+}
+
+
+function addToHistory(expression, rolls, total, droppedIndices = []) {
   rollHistory.unshift({
     expression,
-    rolls,
+    rolls,                // still the raw numbers
     total,
-    timestamp: new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12:true})
+    droppedIndices,       // new: array of indices that were dropped
+    timestamp: new Date().toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
   });
   if (rollHistory.length > MAX_HISTORY) rollHistory.pop();
 }
@@ -413,32 +457,65 @@ function addToHistory(expression, rolls, total) {
 
 function showHistory() {
   if (!rollHistory.length) {
-    alert("No rolls yet.");  // or better: create proper modal later
+    // Simple "no rolls" modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+    `;
+    modal.innerHTML = `
+      <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:500px; width:90%; padding:2rem; text-align:center;">
+        <h3 style="margin:0 0 1.2rem; color:#60a5fa;">Roll History</h3>
+        <p style="opacity:0.7; margin:0;">No rolls yet.</p>
+        <button onclick="this.closest('.modal-container').remove()" 
+                style="margin-top:1.5rem; background:#334155; color:white; border:none; padding:0.7rem 1.4rem; border-radius:6px; cursor:pointer;">
+          Close
+        </button>
+      </div>
+    `;
+    modal.className = 'modal-container'; // just for the close selector
+    document.body.appendChild(modal);
     return;
   }
 
-  const html = rollHistory.map(entry => `
-    <div class="history-entry">
-      <div class="history-main">
-        ${entry.expression} → [${entry.rolls.join(', ')}]${entry.total ? ` = ${entry.total}` : ''}
-      </div>
-      <div class="history-time">${entry.timestamp}</div>
-    </div>
-  `).join('');
+  
+  const html = rollHistory.map(entry => {
+    const rollDisplay = entry.rolls.map((val, idx) => {
+      if (entry.droppedIndices?.includes(idx)) {
+        return `<s style="color:#94a3b8; opacity:0.7;">${val}</s>`;
+      }
+      return val;
+    }).join(', ');
 
-  // Simple modal for now — replace with your preferred modal system
+    return `
+      <div class="history-entry">
+        <div class="history-main">
+          ${entry.expression} → [${rollDisplay}]${entry.total != null ? ` = ${entry.total}` : ''}
+        </div>
+        <div class="history-time">${entry.timestamp}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Actual history modal
   const modal = document.createElement('div');
   modal.style.cssText = `
     position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000;
     display: flex; align-items: center; justify-content: center;
   `;
   modal.innerHTML = `
-    <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; padding:1.5rem;">
-      <h3 style="margin:0 0 1rem; color:#60a5fa;">Roll History</h3>
+    <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:520px; width:90%; max-height:85vh; overflow-y:auto; padding:1.5rem 1.8rem;">
+      <h3 style="margin:0 0 1.2rem; color:#60a5fa; font-size:1.4rem;">Roll History</h3>
       ${html}
-      <button onclick="this.closest('div').parentElement.remove()" style="margin-top:1rem; background:#334155; color:white; border:none; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer;">Close</button>
+      <div style="text-align:center; margin-top:1.5rem;">
+        <button onclick="this.closest('.modal-container').remove()" 
+                style="background:#334155; color:white; border:none; padding:0.7rem 1.6rem; border-radius:6px; cursor:pointer; font-size:1rem;">
+          Close
+        </button>
+      </div>
     </div>
   `;
+  modal.className = 'modal-container';
   document.body.appendChild(modal);
 }
 
@@ -870,10 +947,6 @@ document.getElementById('weapon2-button').onclick = () => {
 
 
 
-// Reuse in rollNoticeOrLead by calling:
-// addToHistory(`${abilityName} (3d6 drop lowest)`, rolls.map(r=>r.value), total);
-
-
 
 // Shared roll trigger function
 function triggerWeaponRoll(char, which = 'primary') {
@@ -964,73 +1037,92 @@ function addPreviewDice(container, dieType, count) {
   addPreviewDice(containers.trauma,  traumaDice,  traumaCount);
 
 
-  // ── Roll logic for one category ────────────────────────────
+
 // ── Roll logic for one category ────────────────────────────
   function rollCategory(category, dieType, count, mod = 0) {
-    const cont = containers[category];
-    const overlay = document.getElementById(`${category}-overlay`);
-    const totalEl = document.getElementById(`${category}-total`);
-    const diceEls = cont.children;
+  const cont = containers[category];
+  const overlay = document.getElementById(`${category}-overlay`);
+  const totalEl = document.getElementById(`${category}-total`);
+  const diceEls = cont.children;
 
-    let finalValues = [];
+  let finalValues = [];
 
-    // Fast cycling animation
-    let frame = 0;
-    const cycling = setInterval(() => {
-      frame++;
-      Array.from(diceEls).forEach(el => {
+  // Fast cycling animation
+  let frame = 0;
+  const cycling = setInterval(() => {
+    frame++;
+    Array.from(diceEls).forEach(el => {
+      const sides = parseInt(dieType.slice(1));
+      const fake = Math.floor(Math.random() * sides) + 1;
+      let valEl = el.querySelector('.die-value');
+      if (!valEl) {
+        valEl = document.createElement('div');
+        valEl.className = 'die-value';
+        el.appendChild(valEl);
+      }
+      valEl.textContent = fake;
+    });
+
+    // Stop after random chaos duration (~1.2–2.2s)
+    if (frame > 20 + Math.random() * 25) {
+      clearInterval(cycling);
+
+      // Final roll
+      finalValues = [];
+      Array.from(diceEls).forEach((mini, i) => {
         const sides = parseInt(dieType.slice(1));
-        const fake = Math.floor(Math.random() * sides) + 1;
-        let valEl = el.querySelector('.die-value');
-        if (!valEl) {
-          valEl = document.createElement('div');
-          valEl.className = 'die-value';
-          el.appendChild(valEl);
+        const v = Math.floor(Math.random() * sides) + 1;
+        finalValues.push(v);
+
+        const valEl = mini.querySelector('.die-value');
+        valEl.textContent = v;
+
+        // Visual crit feedback (attack only for now)
+        if (category === 'attack' && dieType === 'd20') {
+          if (v === 20) {
+            mini.querySelector('canvas').style.background = '#14532d';
+            valEl.classList.add('crit-success');
+          } else if (v === 1) {
+            mini.querySelector('canvas').style.background = '#7f1d1d';
+            valEl.classList.add('crit-fail');
+          }
         }
-        valEl.textContent = fake;
       });
 
-      // Stop after ~1.2–2.2 seconds of chaos
-      if (frame > 20 + Math.random() * 25) {
-        clearInterval(cycling);
+      // Calculate & display total
+      const sum = finalValues.reduce((a,b) => a + b, 0) + mod;
+      let eq = finalValues.length > 1 ? finalValues.join(' + ') : finalValues[0];
+      let modStr = mod ? (mod >= 0 ? ' + ' : ' − ') + Math.abs(mod) : '';
+      totalEl.textContent = `${eq}${modStr} = ${sum}`;
 
-        // Final roll
-        finalValues = [];
-        Array.from(diceEls).forEach((mini, i) => {
-          const sides = parseInt(dieType.slice(1));
-          const v = Math.floor(Math.random() * sides) + 1;
-          finalValues.push(v);
+      // ── Log to history ───────────────────────────────────────
+      const label = category.charAt(0).toUpperCase() + category.slice(1);
+      const sign = mod >= 0 ? '+' : '';
+      const expr = count > 1
+        ? `${count}${dieType}${mod ? sign + mod : ''}`
+        : `${dieType}${mod ? sign + mod : ''}`;
 
-          const valEl = mini.querySelector('.die-value');
-          valEl.textContent = v;
+      addToHistory(
+        `${label}: ${expr}`,
+        finalValues,
+        sum
+        // no droppedIndices here — weapon rolls don't drop lowest
+      );
 
-          // Visual crit feedback (only attack for now)
-          if (category === 'attack' && dieType === 'd20') {
-            if (v === 20) {
-              mini.querySelector('canvas').style.background = '#14532d';
-              valEl.classList.add('crit-success');
-            } else if (v === 1) {
-              mini.querySelector('canvas').style.background = '#7f1d1d';
-              valEl.classList.add('crit-fail');
-            }
-          }
-        });
+      // Fade out overlay
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.style.display = 'none', 450);
 
-        // Show total
-        const sum = finalValues.reduce((a,b)=>a+b,0) + mod;
-        let eq = finalValues.length > 1 ? finalValues.join(' + ') : finalValues[0];
-        totalEl.textContent = `${eq} ${mod ? (mod >= 0 ? '+ ' : '− ') + Math.abs(mod) : ''} = ${sum}`;
+      // Optional: scroll to dice area after result appears
+      scrollToDiceResults();
+    }
+  }, 60);
 
-        // Fade out overlay
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.style.display = 'none', 450);
-      }
-    }, 60);
-    playRandomRollSound();
+  playRandomRollSound();
 
-    // Start fade-out immediately on click
-    overlay.style.opacity = '0';
-  }
+  // Start fade-out immediately when clicked
+  overlay.style.opacity = '0';
+}
 
   // ── Wire up clicks ──────────────────────────────────────────
   document.getElementById('attack-preview').onclick = () =>
@@ -1043,6 +1135,7 @@ function addPreviewDice(container, dieType, count) {
     rollCategory('trauma', traumaDice, traumaCount, 0);
  
   rollCategory('attack', attackDice, 1, attackMod);
+  scrollToDiceResults();
 }
   
 
@@ -1129,7 +1222,8 @@ abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
 
   // ── IMPORTANT: Reset dice results when changing character ──────
   if (selectedIndex !== wasSelected) {
-    closeDiceResults();   // ← this must exist — see below
+    closeDiceResults();   
+    scrollToSelectedCharacter();
   }
 }
 
