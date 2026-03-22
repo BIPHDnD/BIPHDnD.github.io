@@ -314,7 +314,7 @@ function rollNoticeOrLead(char, abilityName) {
   document.querySelectorAll('[id$="-overlay"]').forEach(el => el.style.display = 'none');
 
   const container = document.getElementById('attack-dice');
-  container.innerHTML = '';           // clear previous dice + result-summary
+  clearDiceContainer('attack-dice');;           // clear previous dice + result-summary
 
   const count = 3;
   const dieType = 'd6';
@@ -610,6 +610,7 @@ function createDieScene(type = 'd20') {
   const mesh = (type === 'd100' && geo instanceof THREE.Group) ? geo : new THREE.Mesh(geo, material);
   scene.add(mesh);
 
+  
 function createD10Geometry(size) {
   const gr = (1 + Math.sqrt(1)) / -0.2; 
   const a = 1 / gr;                   // ≈0.618
@@ -663,9 +664,13 @@ function createD10Geometry(size) {
   return geometry;
 }
 
+let rafId;
+
+
   // Constant idle spin (runs forever)
   function animateIdle() {
-    requestAnimationFrame(animateIdle);
+    rafId = requestAnimationFrame(animateIdle);
+    // requestAnimationFrame(animateIdle);
     if (type === 'd100' && mesh instanceof THREE.Group) {
       mesh.rotation.y += 0.005;
       mesh.children[0].rotation.x += 0.003;
@@ -678,7 +683,16 @@ function createD10Geometry(size) {
   }
   animateIdle();
 
-  return { renderer, scene, camera, mesh, type };
+  return { 
+    renderer, scene, camera, mesh, type,
+    rafId,           // ← new: store it
+    stopAnimation: () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    }
+  };
 }
 
 
@@ -1003,7 +1017,10 @@ if (traMatch) {
     damage:  document.getElementById('damage-dice'),
     trauma:  document.getElementById('trauma-dice')
   };
-  Object.values(containers).forEach(c => c.innerHTML = '');
+
+// clearDiceContainer('attack-dice');
+// clearDiceContainer('damage-dice');
+// clearDiceContainer('trauma-dice');
 
   document.querySelectorAll('.row-total').forEach(el => el.textContent = '');
 
@@ -1235,6 +1252,58 @@ abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
   }
 }
 
+// THISISATESTTTTTTTTTTTTTTTTT
+
+function disposeDieScene(die) {
+  if (!die) return;
+
+  // 1. Immediately stop animation — prevents post-dispose render calls
+  if (die.stopAnimation) {
+    die.stopAnimation();
+  }
+
+  // 2. Clean up three.js resources
+  if (die.mesh) {
+    if (die.mesh.geometry) die.mesh.geometry.dispose();
+    if (die.mesh.material) {
+      const mats = Array.isArray(die.mesh.material) ? die.mesh.material : [die.mesh.material];
+      mats.forEach(m => {
+        if (m && m.dispose) m.dispose();
+      });
+    }
+  }
+
+  // 3. Dispose renderer (releases most GPU resources)
+  if (die.renderer) {
+    // Optional: extra safety
+    // die.renderer.renderLists?.dispose?.();
+
+    die.renderer.dispose();
+
+    die.renderer.forceContextLoss();  
+  }
+
+  // 4. Null references
+  die.renderer = die.scene = die.camera = die.mesh = die.rafId = null;
+}
+
+// Example: when clearing a container
+function clearDiceContainer(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  Array.from(container.children).forEach(mini => {
+    if (mini._die) {
+      disposeDieScene(mini._die);
+      mini._die = null;
+    }
+  });
+
+  container.innerHTML = '';
+}
+
+// TESTCOMPLETEEEEEEEEEEEEEE
+
   function closeDiceResults() {
   const resultsEl = document.getElementById('dice-results');
   if (!resultsEl) return;
@@ -1272,10 +1341,13 @@ abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
   });
 
   // Clear dice & totals
-  ['attack-dice', 'damage-dice', 'trauma-dice'].forEach(id => {
-    document.getElementById(id).innerHTML = '';
-  });
+clearDiceContainer('attack-dice');
+clearDiceContainer('damage-dice');
+clearDiceContainer('trauma-dice');
   document.querySelectorAll('.row-total').forEach(el => el.textContent = '');
+
+
+
 }
 
 
@@ -1468,6 +1540,7 @@ function performCustomRoll() {
   // Show dice area
   closeDiceResults();
   scrollToDiceResults();
+  playRandomRollSound()
 
   const resultsEl = document.getElementById('dice-results');
   if (resultsEl) {
@@ -1595,43 +1668,54 @@ function resetCustomDice() {
   updateCustomDiceUI();
 }
 
-function updateCustomDiceUI() {
-  const panel = document.getElementById('custom-dice-panel');
-  if (!panel) {
-    console.warn("Custom dice panel not found");
-    return;
+
+
+// Cache the mini scenes per type so we don't recreate them constantly
+const dieMiniCache = {};  // type → { renderer, scene, camera, mesh }
+
+function getOrCreateMiniDie(type) {
+  if (dieMiniCache[type]) {
+    return dieMiniCache[type];
   }
 
-  panel.innerHTML = '';
+  const die = createDieScene(type);
+  // Optional: make it smaller right away
+  die.renderer.setSize(48, 48);
+  die.camera.aspect = 1;
+  die.camera.updateProjectionMatrix();
+
+  dieMiniCache[type] = die;
+  return die;
+}
+
+function updateCustomDiceUI() {
+  const panel = document.getElementById('custom-dice-panel');
+  if (!panel) return;
+
+  panel.innerHTML = '';  // safe to clear DOM — but NOT dispose yet!
 
   const diceTypes = ['d4','d6','d8','d10','d12','d20','d100'];
 
   diceTypes.forEach(type => {
-  const btn = document.createElement('div');
-  btn.className = 'custom-die-btn';
+    const btn = document.createElement('div');
+    btn.className = 'custom-die-btn';
+    btn.dataset.type = type;
 
-  btn.dataset.type = type;
+    // Get or create **once** per type
+    const die = getOrCreateMiniDie(type);
 
-  // Create mini die canvas
-  const die = createDieScene(type);
-  const canvasWrap = document.createElement('div');
-  canvasWrap.style.cssText = 'opacity:100%; width:100%; height:100%; position:absolute; inset:0; border-radius:50%; overflow:hidden;';
-  canvasWrap.appendChild(die.renderer.domElement);
+    const canvasWrap = document.createElement('div');
+    canvasWrap.style.cssText = 'opacity:100%; width:100%; height:100%; position:absolute; inset:0; border-radius:50%; overflow:hidden;';
+    
+    // Important: reuse the same canvas element if possible
+    // But since we're clearing panel.innerHTML, we must re-append
+    canvasWrap.appendChild(die.renderer.domElement);
+    btn.appendChild(canvasWrap);
 
-  // Force small size
-  setTimeout(() => {
-    die.renderer.setSize(48, 48);
-    die.camera.aspect = 1;
-    die.camera.updateProjectionMatrix();
-  }, 50);
-
-  btn.appendChild(canvasWrap);
-
-  const label = document.createElement('div');
-label.className = 'die-label';
-label.textContent = type.toUpperCase();  // or "d4", "d6", etc.
-btn.appendChild(label);
-
+    const label = document.createElement('div');
+    label.className = 'die-label';
+    label.textContent = type.toUpperCase();
+    btn.appendChild(label);
 
     const mult = document.createElement('div');
     mult.className = 'multiplier';
@@ -1641,7 +1725,6 @@ btn.appendChild(label);
     }
     btn.appendChild(mult);
 
-
     const resetX = document.createElement('div');
     resetX.className = 'reset-x';
     resetX.textContent = '×';
@@ -1649,14 +1732,14 @@ btn.appendChild(label);
     resetX.onclick = e => {
       e.stopPropagation();
       customDice[type].count = 0;
-      updateCustomDiceUI();
+      updateCustomDiceUI();  // only here it's ok — count changed to 0
     };
     btn.appendChild(resetX);
 
     btn.onclick = () => {
       customDice[type].count = (customDice[type].count + 1) % 21;
       if (customDice[type].count === 0) customDice[type].count = 1;
-      updateCustomDiceUI();
+      updateCustomDiceUI();  // still calls it — but now no new contexts!
     };
 
     panel.appendChild(btn);
@@ -1684,9 +1767,6 @@ function initCustomDice() {
     const histBtn = document.getElementById('history-btn');
     if (histBtn) {
       histBtn.onclick = showHistory;
-      console.log("History button wired");
-    } else {
-      console.warn("History button still missing from DOM");
     }
   }, 400);
 }
