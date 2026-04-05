@@ -19,8 +19,8 @@
     <div class="sheet-header">
       <div class="portrait-column">
         <div class="glitch-portrait">
-        <div class="extra-layer"></div>
-</div>
+          <div class="extra-layer"></div>
+        </div>
         <div id="weapon-button" class="weapon-button glitch-img"></div>
         <div id="weapon-desc" class="weapon-desc"></div>
 
@@ -45,87 +45,82 @@
           <div class="abilities-list" id="detail-abilities"></div>
         </div>
 
+        <div id="dice-results" style="display:none; margin-top:0rem; padding:1.25rem; background:#0f172a; color:#e0f2fe;">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Attack -->
+            <div class="dice-column">
+              <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Attack</h4>
+              <div id="attack-preview" class="dice-preview relative cursor-pointer overflow-hidden">
+                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="attack-overlay">
+                  <div class="text-white text-xl font-bold text-center px-4" id="attack-label">Roll Attack</div>
+                </div>
+                <div id="attack-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
+              </div>
+              <div id="attack-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
+            </div>
 
-<div id="dice-results" style="display:none; margin-top:0rem; padding:1.25rem; background:#0f172a; color:#e0f2fe;">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Attack -->
-    <div class="dice-column">
-      <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Attack</h4>
-      <div id="attack-preview" class="dice-preview relative cursor-pointer overflow-hidden">
-        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="attack-overlay">
-          <div class="text-white text-xl font-bold text-center px-4" id="attack-label">Roll Attack</div>
+            <!-- Damage -->
+            <div class="dice-column">
+              <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Damage</h4>
+              <div id="damage-preview" class="dice-preview relative cursor-pointer overflow-hidden">
+                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="damage-overlay">
+                  <div class="text-white text-xl font-bold text-center px-4" id="damage-label">Roll Damage</div>
+                </div>
+                <div id="damage-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
+              </div>
+              <div id="damage-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
+            </div>
+
+            <!-- Trauma -->
+            <div class="dice-column">
+              <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Trauma</h4>
+              <div id="trauma-preview" class="dice-preview relative cursor-pointer overflow-hidden">
+                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="trauma-overlay">
+                  <div class="text-white text-xl font-bold text-center px-4" id="trauma-label">Roll Trauma</div>
+                </div>
+                <div id="trauma-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
+              </div>
+              <div id="trauma-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
+            </div>
+          </div>
         </div>
-        <div id="attack-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
-      </div>
-      <div id="attack-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
-    </div>
-
-    <!-- Damage -->
-    <div class="dice-column">
-      <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Damage</h4>
-      <div id="damage-preview" class="dice-preview relative cursor-pointer overflow-hidden">
-        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="damage-overlay">
-          <div class="text-white text-xl font-bold text-center px-4" id="damage-label">Roll Damage</div>
-        </div>
-        <div id="damage-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
-      </div>
-      <div id="damage-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
-    </div>
-
-    <!-- Trauma -->
-    <div class="dice-column">
-      <h4 class="text-center text-lg font-bold text-[#60a5fa] mb-3">Trauma</h4>
-      <div id="trauma-preview" class="dice-preview relative cursor-pointer overflow-hidden">
-        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center z-20 transition-opacity duration-400 pointer-events-none" id="trauma-overlay">
-          <div class="text-white text-xl font-bold text-center px-4" id="trauma-label">Roll Trauma</div>
-        </div>
-        <div id="trauma-dice" class="dice-containers flex flex-wrap gap-4 justify-center opacity-70"></div>
-      </div>
-      <div id="trauma-total" class="row-total text-center mt-3 font-bold text-lg text-gray-300"></div>
-    </div>
-  </div>
-</div>
-
       </div>
     </div>
   </div>
 
-<div id="custom-dice-panel" style="
-  position: fixed;
-  right: 20px;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4.7px;
-">
+  <div id="custom-dice-panel" style="
+    position: fixed;
+    right: 20px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4.7px;
+  "></div>
 
-</div>
-
-
-<button id="history-btn" style="
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-  background: #1e293b;
-  color: #94a3b8;
-  border: 1px solid #334155;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-">📜</button>
+  <button id="history-btn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  ">📜</button>
 
   <script>
   const characters = [
     {
       name: "KB",
       subtitle: "Programmer, collector extraordinaire",
-      baseMaxHP: 24,
-      currentHP: 24,
+      baseMaxHP: 25,
+      currentHP: 25,
       soak: 10,
       maxSoak: 10,
       avalanche: false,
@@ -135,41 +130,41 @@
       rangedAC: 17,
       meleeAC: 15,
       traumaTarget: 12,
-      saves: "Physical: 10<br>Evasion: 8<br>Mental: 11",
-      attackBonus: "5",
-      weapon: "Modded SMG:Attack:1d20+10<br><small>(DEX+Shoot+Attack Bonus+Burst)</small><br><br>Damage: 1d8+5<br><small>(DEX+Mod+Burst)</small><br><br>Trauma 1d6x2<br>Mag: 30/30<br>Spare Mags: 6",
+      saves: "Physical: 9<br>Evasion: 7<br>Mental: 10",
+      attackBonus: "6",
+      weapon: "Modded SMG:Attack:1d20+11<br><small>(DEX+Shoot+Attack Bonus+Burst)</small><br><br>Damage: 1d8+5<br><small>(DEX+Mod+Burst)</small><br><br>Trauma 1d6x2<br>Mag: 30/30<br>Spare Mags: 10",
       weaponButton: "images/smg.png",
-      weapon2: "Thermal Blade:Attack: 1d20+6<br><small>(DEX+Attack Bonus)</small><br><br>Damage: 1d10+3<br>Trauma: 1d8x3<br>Shock: 6/AC 15",
+      weapon2: "Thermal Blade:Attack: 1d20+7<br><small>(DEX+Attack Bonus)</small><br><br>Damage: 1d10+3<br>Trauma: 1d8x3<br>Shock: 6/AC 15",
       thermalBladePowered: false,
       weapon2Button: "images/thermalblade.png",         
       weapon2ShotSounds: ["audio/thermalbladeattack.mp3"],     
       weapon2MaxMag: 0,
       weapon2SpareMags: 0,
       abilities: [
-  {
-    name: "Hacker",
-    desc: "Hacking / cyberspace-related mental actions",
-    checked: false,
-    checkbox: false
-  },
-  {
-    name: "Specialist: Notice",
-    desc: "Notice (enemy damage / weaknesses / loot / environment)",
-    checked: false,
-    checkbox: false,
-    isRollable: true         
-  },
-  {
-    name: "Specialist: Lead",
-    desc: "Maintain morale / discipline / make NPCs follow orders, <br>even when they think it’s a bad idea",
-    checked: false,
-    checkbox: false,
-    isRollable: true          
-  }
-],
+        {
+          name: "Hacker",
+          desc: "Hacking / cyberspace-related mental actions",
+          checked: false,
+          checkbox: false
+        },
+        {
+          name: "Specialist: Notice",
+          desc: "Notice (enemy damage / weaknesses / loot / environment)",
+          checked: false,
+          checkbox: false,
+          isRollable: true         
+        },
+        {
+          name: "Specialist: Lead",
+          desc: "Maintain morale / discipline / make NPCs follow orders, <br>even when they think it’s a bad idea",
+          checked: false,
+          checkbox: false,
+          isRollable: true          
+        }
+      ],
       mag: 30,
       maxMag: 30,
-      spareMags: 6,
+      spareMags: 10,
       shotSounds: ["audio/smg1.mp3","audio/smg2.mp3","audio/smg3.mp3","audio/smg4.mp3","audio/smg5.mp3","audio/smg6.mp3","audio/smg7.mp3","audio/smg8.mp3"],
       isBurst: true
     },
@@ -189,7 +184,7 @@
       traumaTarget: 7,
       saves: "10+",
       attackBonus: "7",
-      weapon: "Modded Combat Rifle:Attack: 1d20+7<br>Damage: 1d12+2<br>Trauma: 1d8x3<br>Mag: 30/30<br>Spare Mags: 6",
+      weapon: "Modded Combat Rifle:Attack: 1d20+7<br>Damage: 1d12+2<br>Trauma: 1d8x3<br>Mag: 30/30<br>Spare Mags: 5",
       abilities: [
         { name: "Alert Level 2", desc: "You cannot be surprised, not vulnerable to execution attacks, all teammates roll initiative with advantage, you always act first in combat", checked: false, checkbox: false },
         { name: "Cyber Eyes & Ears", desc: "Anti-flash / Anti-stun / Anti-smoke", checked: false, checkbox: false },
@@ -200,7 +195,7 @@
       weaponButton: "images/combatrifle.png",
       mag: 30,
       maxMag: 30,
-      spareMags: 6,
+      spareMags: 5,
       shotSounds: ["audio/ar1.mp3","audio/ar2.mp3","audio/ar3.mp3"],
       isBurst: true
     },
@@ -220,11 +215,11 @@
       traumaTarget: 7,
       saves: "12+",
       attackBonus: "7",
-      weapon: "Anti-Materiel Rifle:Attack: 1d20+7<br>Damage: 3d8!<br>Trauma: 1d12x3<br>Mag: 4/4<br>Spare Mags: 5",
+      weapon: "Anti-Materiel Rifle:Attack: 1d20+7<br>Damage: 3d8!<br>Trauma: 1d12x3<br>Mag: 4/4<br>Spare Mags: 2",
       weaponButton: "images/amr.png",
       mag: 4,
       maxMag: 4,
-      spareMags: 5,
+      spareMags: 2,
       shotSounds: ["audio/amr1.mp3", "audio/amr2.mp3"],
       isBurst: false,
       weapon2: "Modded Advanced Knife:Attack: 1d20+7<br>Damage: 1d8+2<br>Trauma: 1d8x3<br>Shock: 3/Any",
@@ -235,45 +230,70 @@
         { name: "Deadeye Level 2", desc: "Ready a stowed weapon as an instant action, reload as an on-turn action, no melee penalty for ranged weapons, once per scene guaranteed hit on inanimate, non-human target", checked: false, checkbox: true },
         { name: "Veteran's Luck", desc: "Once per scene, either a missed attack on an enemy hits or an attack against you misses", checked: false, checkbox: true }
       ],
-
-    },
-    {
-      name: "Bakersfield",
-      subtitle: "Need a light?",
-      baseMaxHP: 23,
-      currentHP: 23,
-      soak: 0,
-      maxSoak: 0,
-      avalanche: false,
-      changeCounter: 0,
-      changeTimeout: null,
-      portraitFull: "images/4full.png",
-      rangedAC: 15,
-      meleeAC: 13,
-      traumaTarget: 5,
-      saves: "13+",
-      attackBonus: "6",
-      weapon: "Modded SMG:Attack: 1d20+6<br>Damage: 1d8+2<br>Trauma: 1d6x3<br>Mag: 20/20<br>Spare Mags: 4",
-      weaponButton: "images/smg.png",
-      mag: 20,
-      maxMag: 20,
-      spareMags: 4,
-      shotSounds: ["audio/smg1.mp3","audio/smg2.mp3","audio/smg3.mp3","audio/smg4.mp3","audio/smg5.mp3","audio/smg6.mp3","audio/smg7.mp3","audio/smg8.mp3"],
-      isBurst: true,
-      weapon2: "Modded Heavy Pistol:Attack: 1d20+6<br>Damage: 1d8+2<br>Trauma: 1d6x3<br>Mag: 8/8<br>Spare Mags: 3",
-      weapon2Button: "images/heavypistol.png",        
-      weapon2ShotSounds: ["audio/heavypistol.mp3"],   
-      weapon2Mag: 8,
-      weapon2MaxMag: 8,
-      weapon2SpareMags: 3,
-      abilities: [
-        { name: "Alert Level 2", desc: "You cannot be surprised, not vulnerable to execution attacks, all teammates roll initiative with advantage, you always act first in combat", checked: false, checkbox: false },
-        { name: "Enhanced Reflexes", desc: "Once per scene bonus action", checked: false, checkbox: true },
-        { name: "Veteran's Luck", desc: "Once per scene, either a missed attack on an enemy hits or an attack against you misses", checked: false, checkbox: true }
-      ],
     }
   ];
 
+    // ============== MIDI SETUP (New) ==============
+  let midiOutput = null;
+
+  async function initMIDI() {
+    if (!navigator.requestMIDIAccess) {
+      console.warn("Web MIDI API not supported in this browser.");
+      return;
+    }
+
+    try {
+      const midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+      console.log("MIDI Access granted.");
+
+      for (const output of midiAccess.outputs.values()) {
+        if (output.name.includes("IAC Driver Bus 1") || output.name === "IAC Driver Bus 1") {
+          midiOutput = output;
+          console.log("✅ Connected to IAC Driver Bus 1");
+          return;
+        }
+      }
+
+      if (midiAccess.outputs.size > 0) {
+        midiOutput = midiAccess.outputs.values().next().value;
+        console.log("⚠️ Using first available MIDI output:", midiOutput.name);
+      }
+    } catch (err) {
+      console.error("MIDI access failed:", err);
+    }
+  }
+
+  // Fixed MIDI note per character + velocity = action type
+  const characterMidiNotes = [60, 62, 64, 65]; // KB=60(C4), MarMar=62, Sanders=64, Bakersfield=65
+
+  function sendMidiEvent(playerIndex, velocity) {
+    if (!midiOutput || playerIndex < 0 || playerIndex >= characterMidiNotes.length) return;
+
+    const note = characterMidiNotes[playerIndex];
+    const channel = 0; // Channel 1
+
+    const noteOn = [0x90 + channel, note, velocity];
+    const noteOff = [0x80 + channel, note, 0];
+
+    midiOutput.send(noteOn);
+    setTimeout(() => {
+      if (midiOutput) midiOutput.send(noteOff);
+    }, 100);
+
+    console.log(`🎵 MIDI → ${characters[playerIndex].name} | Note ${note} | Vel ${velocity}`);
+  }
+
+  // Initialize MIDI on page load
+window.addEventListener('load', async () => {
+  await initMIDI();
+  selectCharacter(0);        // normal initial select
+  initCustomDice();
+});
+
+  // MIDI Note Mapping (Base notes: C3=48, D3=50, E3=52, F#3=54)
+  function getBaseMidiNote(playerIndex) {
+    return 48 + (playerIndex * 2);
+  }
 
 const rollSounds = [
   'audio/roll1.mp3', 'audio/roll2.mp3', 'audio/roll3.mp3', 'audio/roll4.mp3',
@@ -354,7 +374,7 @@ function rollNoticeOrLead(char, abilityName) {
     }, 100);
   }
 
-  // Generate roll
+    // Generate roll
   let rolls = Array.from({ length: count }, (_, i) => ({
     value: Math.floor(Math.random() * 6) + 1,
     index: i
@@ -369,7 +389,13 @@ function rollNoticeOrLead(char, abilityName) {
   }
 
   const kept = rolls.filter(r => !toDrop.some(d => d.index === r.index));
-  const total = kept.reduce((s, r) => s + r.value, 0);
+  let total = kept.reduce((s, r) => s + r.value, 0);
+
+  // Special rule: Lead skill gets +2 (for KB)
+  const isLead = cleanName.toLowerCase() === "lead";
+  if (isLead) {
+    total += 2;
+  }
 
   // Animation
   let frame = 0;
@@ -389,23 +415,29 @@ function rollNoticeOrLead(char, abilityName) {
         }
       });
 
-      // Clean result (no "drop x" text)
+      // Updated result display with +2 for Lead
       const resultDiv = document.createElement('div');
       resultDiv.className = 'result-summary';
-      resultDiv.textContent = `${kept.map(r => r.value).join(' + ')} = ${total}`;
-      container.parentElement.appendChild(resultDiv); // below dice
+      
+      if (isLead) {
+        resultDiv.textContent = `${kept.map(r => r.value).join(' + ')} (+2) = ${total}`;
+      } else {
+        resultDiv.textContent = `${kept.map(r => r.value).join(' + ')} = ${total}`;
+      }
+      
+      container.parentElement.appendChild(resultDiv);
 
       playRandomRollSound();
 
-// After determining toDrop
-const droppedIdx = toDrop.length > 0 ? [toDrop[0].index] : [];
+      // After determining toDrop
+      const droppedIdx = toDrop.length > 0 ? [toDrop[0].index] : [];
 
-// Then when logging:
-addToHistory(
-  `${cleanName} (3d6 drop lowest)`,
-  rolls.map(r => r.value),
-  total,
-  droppedIdx
+      // Log to history with bonus info
+      addToHistory(
+        isLead ? `${cleanName} (3d6 drop lowest +2)` : `${cleanName} (3d6 drop lowest)`,
+        rolls.map(r => r.value),
+        total,
+        droppedIdx
       );
     }
   }, 60);
@@ -470,28 +502,34 @@ function addToHistory(expression, rolls, total, droppedIndices = []) {
 
 function showHistory() {
   if (!rollHistory.length) {
-    // Simple "no rolls" modal
     const modal = document.createElement('div');
+    modal.className = 'modal-container';
     modal.style.cssText = `
       position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000;
       display: flex; align-items: center; justify-content: center;
     `;
     modal.innerHTML = `
-      <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:500px; width:90%; padding:2rem; text-align:center;">
+      <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:500px; width:90%; padding:2rem; text-align:center; position:relative;">
+        <button onclick="this.closest('.modal-container').remove()" 
+                style="position:absolute; top:12px; right:12px; background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
+          ×
+        </button>
         <h3 style="margin:0 0 1.2rem; color:#60a5fa;">Roll History</h3>
         <p style="opacity:0.7; margin:0;">No rolls yet.</p>
-        <button onclick="this.closest('.modal-container').remove()" 
-                style="margin-top:1.5rem; background:#334155; color:white; border:none; padding:0.7rem 1.4rem; border-radius:6px; cursor:pointer;">
-          Close
-        </button>
       </div>
     `;
-    modal.className = 'modal-container'; // just for the close selector
     document.body.appendChild(modal);
+
+    // Close on outside click and Escape
+    setTimeout(() => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
+    }, 10);
+
     return;
   }
 
-  
   const html = rollHistory.map(entry => {
     const rollDisplay = entry.rolls.map((val, idx) => {
       if (entry.droppedIndices?.includes(idx)) {
@@ -510,26 +548,43 @@ function showHistory() {
     `;
   }).join('');
 
-  // Actual history modal
   const modal = document.createElement('div');
+  modal.className = 'modal-container';
   modal.style.cssText = `
     position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000;
     display: flex; align-items: center; justify-content: center;
   `;
   modal.innerHTML = `
-    <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:520px; width:90%; max-height:85vh; overflow-y:auto; padding:1.5rem 1.8rem;">
+    <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-width:520px; width:90%; max-height:85vh; overflow-y:auto; padding:1.5rem 1.8rem; position:relative;">
+      <button onclick="this.closest('.modal-container').remove()" 
+              style="position:absolute; top:12px; right:12px; background:none; border:none; color:#94a3b8; font-size:1.8rem; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; line-height:1;">
+        ×
+      </button>
+      
       <h3 style="margin:0 0 1.2rem; color:#60a5fa; font-size:1.4rem;">Roll History</h3>
       ${html}
-      <div style="text-align:center; margin-top:1.5rem;">
-        <button onclick="this.closest('.modal-container').remove()" 
-                style="background:#334155; color:white; border:none; padding:0.7rem 1.6rem; border-radius:6px; cursor:pointer; font-size:1rem;">
-          Close
-        </button>
-      </div>
     </div>
   `;
-  modal.className = 'modal-container';
   document.body.appendChild(modal);
+
+  // Close handlers
+  setTimeout(() => {
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+
+    // Escape key to close
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+  }, 10);
 }
 
 
@@ -698,7 +753,6 @@ let rafId;
 
 
   let selectedIndex = -1;
-  let previousSelectedIndex = -1;
 
   const audioCache = {};
 
@@ -756,14 +810,6 @@ const MAX_HISTORY = 15;
 
     list.appendChild(container);
 
-    const hpTextEl = document.getElementById(`hp-text-${i}`);
-    hpTextEl.addEventListener('click', () => {
-      if (char.maxSoak > 0) {
-        char.soak = char.maxSoak;
-        render();
-      }
-    });
-
     return {
       container,
       healthBar: document.getElementById(`health-bar-${i}`),
@@ -775,202 +821,43 @@ const MAX_HISTORY = 15;
     };
   });
 
-  function render() {
-  // Update previous index at the START of render (so we can compare with last render)
-  const wasSelected = previousSelectedIndex;
-  previousSelectedIndex = selectedIndex;
+    function render() {
+    const wasSelected = previousSelectedIndex;
+    previousSelectedIndex = selectedIndex;
 
-  // ── Render character list ───────────────────────────────────────
-  characters.forEach((char, i) => {
-    const el = elements[i];
-    const base = char.baseMaxHP;
-    const effMax = getEffectiveMax(char);
-    const hpForBar = Math.min(char.currentHP, base);
-    const hpPct = Math.max(0, Math.min(100, (hpForBar / base) * 100));
-    const soakPct = char.maxSoak > 0 ? Math.max(0, Math.min(100, (char.soak / char.maxSoak) * 100)) : 0;
+    // Update character list
+    characters.forEach((char, i) => {
+      const el = elements[i];
+      const base = char.baseMaxHP;
+      const effMax = getEffectiveMax(char);
+      const hpForBar = Math.min(char.currentHP, base);
+      const hpPct = Math.max(0, Math.min(100, (hpForBar / base) * 100));
+      const soakPct = char.maxSoak > 0 ? Math.max(0, Math.min(100, (char.soak / char.maxSoak) * 100)) : 0;
 
-    el.container.className = `character-container ${i === selectedIndex ? 'selected' : ''} ${char.currentHP <= 0 ? 'dead' : ''}`;
-    el.healthBar.style.width = `${hpPct}%`;
+      el.container.className = `character-container ${i === selectedIndex ? 'selected' : ''} ${char.currentHP <= 0 ? 'dead' : ''}`;
+      el.healthBar.style.width = `${hpPct}%`;
 
-    let hpDisplay = `${char.currentHP}/${base} HP`;
-    if (char.maxSoak > 0) {
-      hpDisplay += ` • <span class="soak-span">Soak: ${char.soak}/${char.maxSoak}</span>`;
-    }
-    el.hpText.innerHTML = hpDisplay;
-
-    if (char.maxSoak > 0) {
-      el.soakContainer.style.display = 'block';
-      el.soakBar.style.width = `${soakPct}%`;
-    } else {
-      el.soakContainer.style.display = 'none';
-    }
-
-    el.toggle.checked = char.avalanche;
-  });
-
-  // ── Character sheet ─────────────────────────────────────────────
-  const sheet = document.getElementById('character-sheet');
-
-  if (selectedIndex >= 0) {
-    const char = characters[selectedIndex];
-
-    // document.getElementById('detail-portrait').src = char.portraitFull;
-
-// And set the variable
-    document.querySelector('.glitch-portrait').style.setProperty('--portrait-url', `url('${char.portraitFull}')`);
-    document.getElementById('detail-name').textContent = char.name;
-
-    const subtitleEl = document.getElementById('detail-subtitle');
-    if (char.subtitle) {
-      subtitleEl.textContent = char.subtitle;
-      subtitleEl.style.display = 'block';
-    } else {
-      subtitleEl.style.display = 'none';
-    }
-
-    document.getElementById('detail-ranged-ac').textContent = char.rangedAC;
-    document.getElementById('detail-melee-ac').textContent = char.meleeAC;
-    document.getElementById('detail-trauma').textContent = char.traumaTarget;
-    document.getElementById('detail-saves').innerHTML = char.saves;
-    document.getElementById('detail-attack-bonus').textContent = char.attackBonus;
-
-    // Primary weapon
-    document.getElementById('weapon-button').style.backgroundImage = `url('${char.weaponButton}')`;
-
-    let weaponHTML = '';
-    const lines = char.weapon.split('<br000000>').filter(line => line.trim());
-
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (trimmed.includes(':')) {
-        const [name, ...restParts] = trimmed.split(':');
-        const rest = restParts.join(':').trim();
-        weaponHTML += `<span class="weapon-name">${name.trim()}:</span> <span class="fine-print">${rest}</span><br>`;
-      } else {
-        weaponHTML += `<span class="fine-print">${trimmed}</span><br>`;
+      let hpDisplay = `${char.currentHP}/${base} HP`;
+      if (char.maxSoak > 0) {
+        hpDisplay += ` • <span class="soak-span">Soak: ${char.soak}/${char.maxSoak}</span>`;
       }
+      el.hpText.innerHTML = hpDisplay;
+
+      if (char.maxSoak > 0) {
+        el.soakContainer.style.display = 'block';
+        el.soakBar.style.width = `${soakPct}%`;
+      } else {
+        el.soakContainer.style.display = 'none';
+      }
+
+      el.toggle.checked = char.avalanche;
     });
 
-    weaponHTML = weaponHTML.replace(
-      /Mag:\s*\d+(\/\d+)?/,
-      `Mag: ${char.mag}/${char.maxMag} <span class="reload-link" onclick="reloadWeapon()">reload</span>`
-    );
-
-    weaponHTML = weaponHTML.replace(
-      /(Spare Mags:)\s*(?:\d+)?/i,
-      `$1 <span class="spare-mags-display" onclick="editSpareMags(event, ${selectedIndex}, 'primary')">${char.spareMags}</span>`
-    );
-
-    document.getElementById('weapon-desc').innerHTML = weaponHTML;
-
-    // Secondary weapon logic (unchanged from your previous version)
-    const w2Section = document.getElementById('weapon2-section');
-    if (char.weapon2) {
-  w2Section.style.display = 'block';
-  document.getElementById('weapon2-button').style.backgroundImage = `url('${char.weapon2Button || "images/placeholder.png"}')`;
-
-  let w2HTML = '';
-  const w2Lines = char.weapon2.split('<br000000>').filter(l => l.trim());
-
-  w2Lines.forEach(line => {
-    const trimmed = line.trim();
-    if (trimmed.includes(':')) {
-      const [namePart, ...rest] = trimmed.split(':');
-      const name = namePart.trim();
-
-      if (name.toLowerCase() === 'thermal blade') {
-    w2HTML += `
-      <span class="weapon-name">${name}:</span>
-      <label class="mini-toggle-label cursor-pointer inline-flex items-center ml-2">
-        <div class="mini-toggle">
-          <input type="checkbox" id="thermal-power-toggle" ${char.thermalBladePowered ? 'checked' : ''}>
-          <span class="mini-slider"></span>
-        </div>
-      </label>
-      <span class="fine-print">${rest.join(':').trim()}</span>
-    `;
-} else {
-    w2HTML += `<span class="weapon-name">${name}:</span> <span class="fine-print">${rest.join(':').trim()}</span>`;
-}
-w2HTML += '<br>';
-    }
-  });
-
-      w2HTML = w2HTML.replace(
-        /Mag:\s*\d+(\/\d+)?/,
-        `Mag: ${char.weapon2Mag}/${char.weapon2MaxMag} <span class="reload-link" onclick="reloadWeapon2()">reload</span>`
-      );
-
-      w2HTML = w2HTML.replace(
-        /(Spare Mags:)\s*(?:\d+)?/i,
-        `$1 <span class="spare-mags-display" onclick="editSpareMags(event, ${selectedIndex}, 'secondary')">${char.weapon2SpareMags}</span>`
-      );
-
-      document.getElementById('weapon2-desc').innerHTML = w2HTML;
-
-    // ── Then attach the event listener to the freshly-created toggle ─────
-    const powerToggle = document.getElementById('thermal-power-toggle');
-    if (powerToggle) {
-        powerToggle.addEventListener('change', (e) => {
-            const isOn = e.target.checked;
-            char.thermalBladePowered = isOn;
-
-            const soundFile = isOn 
-                ? "audio/thermalbladepoweron.mp3" 
-                : "audio/thermalbladepoweroff.mp3";
-
-            const audio = new Audio(soundFile);
-            audio.volume = 0.6;           // ← feel free to change
-            audio.play().catch(err => console.log("Audio play failed:", err));
-        });
-    }
-
-} else {
-    w2Section.style.display = 'none';
-}
-
-      // Fire logic
-      // Primary weapon click
-document.getElementById('weapon-button').onclick = () => {
-  if (char.mag <= 0) return;
-
-  playRandomSound(char.shotSounds);
-
-  // Ammo logic (your existing burst / single shot)
-  if (char.isBurst) {
-    let count = 3;
-    const interval = setInterval(() => {
-      if (char.mag <= 0 || count <= 0) { clearInterval(interval); return; }
-      char.mag -= 1;
-      render();
-      count--;
-    }, 80);
-  } else {
-    char.mag -= 1;
-    render();
-  }
-
-  // NEW: Trigger dice roll animation + results
-  triggerWeaponRoll(char, 'primary');
-};
-
-// Secondary weapon (similar)
-document.getElementById('weapon2-button').onclick = () => {
-  if (char.weapon2Mag <= 0) return;
-
-  playRandomSound(char.weapon2ShotSounds || char.shotSounds);
-
-  char.weapon2Mag -= 1;
-  render();
-
-  triggerWeaponRoll(char, 'secondary');
-};
+    // Character sheet
+    const sheet = document.getElementById('character-sheet');
 
 
-
-
-
-// Shared roll trigger function
+    // Shared roll trigger function
 function triggerWeaponRoll(char, which = 'primary') {
   closeDiceResults();
   const resultsEl = document.getElementById('dice-results');
@@ -1217,39 +1104,166 @@ function addPreviewDice(container, dieType, count) {
     input.focus();
   };
 
-      // Abilities
-const abilitiesEl = document.getElementById('detail-abilities');
-abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
-  let html = '<div class="ability-row">';
-  
-  const isClickable = ab.isRollable && selectedIndex === characters.findIndex(c => c.name === "KB");
-  
-  if (ab.checkbox) {
-    html += `<input type="checkbox" id="ability-${selectedIndex}-${idx}" ${ab.checked ? 'checked' : ''}>`;
-  }
-  
-  const labelClass = isClickable ? 'cursor-pointer hover:text-[#60a5fa]' : '';
-  
-  html += `
-    <label for="${ab.checkbox ? `ability-${selectedIndex}-${idx}` : ''}" class="${labelClass}"
-    ${isClickable ? `onclick="rollNoticeOrLead(characters[${selectedIndex}], '${ab.name.replace(/'/g,"\\'")}')"` : ''}>
-      <span class="font-bold">${ab.name.trim()}</span>
-      ${ab.desc ? `<br><span class="fine-print">${ab.desc}</span>` : ''}
-    </label>
-  </div>`;
-  return html;
-}).join('');
+
+
+    if (selectedIndex >= 0) {
+      const char = characters[selectedIndex];
+
+      document.querySelector('.glitch-portrait').style.setProperty('--portrait-url', `url('${char.portraitFull}')`);
+      document.getElementById('detail-name').textContent = char.name;
+
+      const subtitleEl = document.getElementById('detail-subtitle');
+      subtitleEl.textContent = char.subtitle || '';
+      subtitleEl.style.display = char.subtitle ? 'block' : 'none';
+
+      document.getElementById('detail-ranged-ac').textContent = char.rangedAC;
+      document.getElementById('detail-melee-ac').textContent = char.meleeAC;
+      document.getElementById('detail-trauma').textContent = char.traumaTarget;
+      document.getElementById('detail-saves').innerHTML = char.saves;
+      document.getElementById('detail-attack-bonus').textContent = char.attackBonus;
+
+      // Primary weapon
+      document.getElementById('weapon-button').style.backgroundImage = `url('${char.weaponButton}')`;
+
+      let weaponHTML = '';
+      const lines = char.weapon.split('<br000000>').filter(line => line.trim());
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.includes(':')) {
+          const [name, ...restParts] = trimmed.split(':');
+          const rest = restParts.join(':').trim();
+          weaponHTML += `<span class="weapon-name">${name.trim()}:</span> <span class="fine-print">${rest}</span><br>`;
+        } else {
+          weaponHTML += `<span class="fine-print">${trimmed}</span><br>`;
+        }
+      });
+
+      weaponHTML = weaponHTML.replace(/Mag:\s*\d+(\/\d+)?/, `Mag: ${char.mag}/${char.maxMag} <span class="reload-link" onclick="reloadWeapon()">reload</span>`);
+      weaponHTML = weaponHTML.replace(/(Spare Mags:)\s*(?:\d+)?/i, `$1 <span class="spare-mags-display" onclick="editSpareMags(event, ${selectedIndex}, 'primary')">${char.spareMags}</span>`);
+      document.getElementById('weapon-desc').innerHTML = weaponHTML;
+
+      // Secondary weapon
+      const w2Section = document.getElementById('weapon2-section');
+      if (char.weapon2) {
+        w2Section.style.display = 'block';
+        document.getElementById('weapon2-button').style.backgroundImage = `url('${char.weapon2Button || "images/placeholder.png"}')`;
+
+        let w2HTML = '';
+        const w2Lines = char.weapon2.split('<br000000>').filter(l => l.trim());
+        w2Lines.forEach(line => {
+          const trimmed = line.trim();
+          if (trimmed.includes(':')) {
+            const [namePart, ...rest] = trimmed.split(':');
+            const name = namePart.trim();
+            if (name.toLowerCase() === 'thermal blade') {
+              w2HTML += `<span class="weapon-name">${name}:</span>
+                <label class="mini-toggle-label cursor-pointer inline-flex items-center ml-2">
+                  <div class="mini-toggle">
+                    <input type="checkbox" id="thermal-power-toggle" ${char.thermalBladePowered ? 'checked' : ''}>
+                    <span class="mini-slider"></span>
+                  </div>
+                </label>
+                <span class="fine-print">${rest.join(':').trim()}</span><br>`;
+            } else {
+              w2HTML += `<span class="weapon-name">${name}:</span> <span class="fine-print">${rest.join(':').trim()}</span><br>`;
+            }
+          }
+        });
+
+        w2HTML = w2HTML.replace(/Mag:\s*\d+(\/\d+)?/, `Mag: ${char.weapon2Mag}/${char.weapon2MaxMag} <span class="reload-link" onclick="reloadWeapon2()">reload</span>`);
+        w2HTML = w2HTML.replace(/(Spare Mags:)\s*(?:\d+)?/i, `$1 <span class="spare-mags-display" onclick="editSpareMags(event, ${selectedIndex}, 'secondary')">${char.weapon2SpareMags}</span>`);
+        document.getElementById('weapon2-desc').innerHTML = w2HTML;
+      } else {
+        w2Section.style.display = 'none';
+      }
+
+      // ==================== WEAPON MIDI ====================
+      document.getElementById('weapon-button').onclick = () => {
+        if (char.mag <= 0) return;
+        playRandomSound(char.shotSounds);
+        sendMidiEvent(selectedIndex, 5);   // Primary weapon = velocity 5
+
+        if (char.isBurst) {
+          let count = 3;
+          const interval = setInterval(() => {
+            if (char.mag <= 0 || count <= 0) { clearInterval(interval); return; }
+            char.mag -= 1;
+            render();
+            count--;
+          }, 80);
+        } else {
+          char.mag -= 1;
+          render();
+        }
+        triggerWeaponRoll(char, 'primary');
+      };
+
+      document.getElementById('weapon2-button').onclick = () => {
+        if (char.weapon2Mag <= 0) return;
+        playRandomSound(char.weapon2ShotSounds || char.shotSounds);
+        sendMidiEvent(selectedIndex, 6);   // Secondary weapon = velocity 6
+
+        char.weapon2Mag -= 1;
+        render();
+        triggerWeaponRoll(char, 'secondary');
+      };
+
+      // Thermal Blade toggle MIDI (7 = on, 8 = off)
+      const powerToggle = document.getElementById('thermal-power-toggle');
+      if (powerToggle) {
+        powerToggle.onchange = (e) => {   // use onchange to avoid duplicate listeners
+          const isOn = e.target.checked;
+          char.thermalBladePowered = isOn;
+          sendMidiEvent(selectedIndex, isOn ? 7 : 8);
+
+          const soundFile = isOn ? "audio/thermalbladepoweron.mp3" : "audio/thermalbladepoweroff.mp3";
+          new Audio(soundFile).play().catch(() => {});
+        };
+      }
+
+
+
+
+
+      // Abilities (unchanged)
+      const abilitiesEl = document.getElementById('detail-abilities');
+      abilitiesEl.innerHTML = char.abilities.map((ab, idx) => {
+        let html = '<div class="ability-row">';
+        const isClickable = ab.isRollable && selectedIndex === 0;
+        if (ab.checkbox) html += `<input type="checkbox" id="ability-${selectedIndex}-${idx}" ${ab.checked ? 'checked' : ''}>`;
+        const labelClass = isClickable ? 'cursor-pointer hover:text-[#60a5fa]' : '';
+        html += `<label for="${ab.checkbox ? `ability-${selectedIndex}-${idx}` : ''}" class="${labelClass}" ${isClickable ? `onclick="rollNoticeOrLead(characters[${selectedIndex}], '${ab.name.replace(/'/g,"\\'")}')"` : ''}>
+          <span class="font-bold">${ab.name.trim()}</span>
+          ${ab.desc ? `<br><span class="fine-print">${ab.desc}</span>` : ''}
+        </label></div>`;
+        return html;
+      }).join('');
 
       sheet.classList.add('visible');
     } else {
       sheet.classList.remove('visible');
-  }
+    }
 
-  // ── IMPORTANT: Reset dice results when changing character ──────
-  if (selectedIndex !== wasSelected) {
-    closeDiceResults();   
-    scrollToSelectedCharacter();
-  }
+    // Send "select" MIDI when changing character
+      if (selectedIndex !== wasSelected && selectedIndex >= 0) {
+        closeDiceResults();
+        scrollToSelectedCharacter();
+      }
+    }
+
+
+function selectCharacter(index) {
+  if (index < 0 || index >= characters.length) return;
+  if (index === selectedIndex) return;   // already selected → do nothing
+
+  previousSelectedIndex = selectedIndex;
+  selectedIndex = index;
+
+  sendMidiEvent(selectedIndex, 1);   // velocity 1 = select
+
+  closeDiceResults();
+  scrollToSelectedCharacter();
+  render();
 }
 
 // THISISATESTTTTTTTTTTTTTTTTT
@@ -1383,16 +1397,15 @@ window.addEventListener('scroll', updateDicePanelPosition);
 window.addEventListener('resize', updateDicePanelPosition);
 
 
-  function updateHealth(delta) {
+    function updateHealth(delta) {
     if (selectedIndex < 0) return;
     const char = characters[selectedIndex];
     const el = elements[selectedIndex];
     const base = char.baseMaxHP;
-    const effMax = getEffectiveMax(char);
-
     const oldHP = char.currentHP;
     const oldSoak = char.soak;
 
+    // Existing health logic (unchanged)
     if (delta > 0) {
       let rem = delta;
       if (getRealHP(char) < base) {
@@ -1405,8 +1418,8 @@ window.addEventListener('resize', updateDicePanelPosition);
         char.soak += add;
         rem -= add;
       }
-      if (rem > 0 && char.avalanche && char.currentHP < effMax) {
-        char.currentHP = Math.min(effMax, char.currentHP + rem);
+      if (rem > 0 && char.avalanche && char.currentHP < getEffectiveMax(char)) {
+        char.currentHP = Math.min(getEffectiveMax(char), char.currentHP + rem);
       }
     } else {
       let dmg = -delta;
@@ -1425,6 +1438,15 @@ window.addEventListener('resize', updateDicePanelPosition);
       }
     }
 
+    // MIDI triggers
+    if (delta < 0) {
+      sendMidiEvent(selectedIndex, 3);                    // Health decreases = vel 3
+      if (char.currentHP <= 0 && oldHP > 0) {
+        sendMidiEvent(selectedIndex, 4);                  // Dies = vel 4
+      }
+    }
+
+    // HP change animation
     if (char.currentHP !== oldHP || char.soak !== oldSoak) {
       char.changeCounter += delta;
       el.hpChange.textContent = char.changeCounter > 0 ? `+${char.changeCounter}` : char.changeCounter;
@@ -1443,56 +1465,73 @@ window.addEventListener('resize', updateDicePanelPosition);
     render();
   }
 
-  function toggleAvalanche(i) {
-    const char = characters[i];
-    const was = char.avalanche;
-    char.avalanche = !char.avalanche;
-    if (char.avalanche && !was) char.currentHP += 10;
-    else if (!char.avalanche && was) char.currentHP = Math.min(char.baseMaxHP, char.currentHP);
-    render();
+function toggleAvalanche(i) {
+  const char = characters[i];
+  const was = char.avalanche;
+  char.avalanche = !char.avalanche;
+
+  if (char.avalanche && !was) {
+    char.currentHP += 10;
+    sendMidiEvent(i, 2);        // ONLY send avalanche MIDI (vel 2)
+  } 
+  else if (!char.avalanche && was) {
+    char.currentHP = Math.min(char.baseMaxHP, char.currentHP);
+    // No MIDI for turning avalanche OFF (as per your original code)
   }
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-  const resultsEl = document.getElementById('dice-results');
-  if (resultsEl && resultsEl.style.display !== 'none') {
-    closeDiceResults();
-    render();
-  }
-  return;
+  // Always update the selected character visually, but WITHOUT sending select MIDI
+  previousSelectedIndex = selectedIndex;
+  selectedIndex = i;
+
+  closeDiceResults();
+  scrollToSelectedCharacter();
+  render();
 }
 
-    // Prevent up/down from scrolling the page
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      e.preventDefault();
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const resultsEl = document.getElementById('dice-results');
+    if (resultsEl && resultsEl.style.display !== 'none') {
+      closeDiceResults();
+      render();
     }
+    return;
+  }
 
-    if (e.key === 'ArrowRight') {
-      selectedIndex = (selectedIndex + 1) % characters.length;
-      if (selectedIndex === -1) selectedIndex = 0;
-      window.scrollTo(0, 0);
-      render();
-    } else if (e.key === 'ArrowLeft') {
-      selectedIndex = (selectedIndex - 1 + characters.length) % characters.length;
-      window.scrollTo(0, 0);
-      render();
-    } else if (e.key === 'ArrowUp') {
-      updateHealth(1);
-    } else if (e.key === 'ArrowDown') {
-      updateHealth(-1);
-    }
-  });
+  // Prevent up/down arrows from scrolling the page
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+  }
+
+  if (e.key === 'ArrowRight') {
+    const nextIndex = (selectedIndex + 1) % characters.length;
+    selectCharacter(nextIndex);           // Use the new function
+    window.scrollTo(0, 0);
+  } 
+  else if (e.key === 'ArrowLeft') {
+    const prevIndex = (selectedIndex - 1 + characters.length) % characters.length;
+    selectCharacter(prevIndex);           // Use the new function
+    window.scrollTo(0, 0);
+  } 
+  else if (e.key === 'ArrowUp') {
+    updateHealth(1);
+  } 
+  else if (e.key === 'ArrowDown') {
+    updateHealth(-1);
+  }
+});
+
 
 list.addEventListener('click', e => {
   const container = e.target.closest('.character-container');
   if (container) {
-    selectedIndex = parseInt(container.dataset.index);
-    window.scrollTo(0, 0);         
-    render();
+    const newIndex = parseInt(container.dataset.index);
+    selectCharacter(newIndex);
   }
 });
 
-  document.addEventListener('change', e => {
+
+    document.addEventListener('change', e => {
     if (e.target.type === 'checkbox') {
       if (e.target.id.startsWith('toggle-')) {
         const i = parseInt(e.target.id.split('-')[1]);
@@ -1505,9 +1544,17 @@ list.addEventListener('click', e => {
     }
   });
 
-render();
-  selectedIndex = 0;
-  render();
+// Initialize everything
+  function init() {
+    render();
+selectCharacter(0);   // This will send the initial MIDI once
+  }
+
+window.addEventListener('load', async () => {
+  await initMIDI();
+  selectCharacter(0);           // Normal select on load
+  initCustomDice();
+});
 
 
   // Custom dice state
@@ -1789,6 +1836,20 @@ window.addEventListener('resize', () => {
 });
 
 
+// Initialize MIDI + app
+  window.addEventListener('load', async () => {
+    await initMIDI();
+    
+    // Initial render
+    render();
+    selectedIndex = 0;
+    render();
+
+    // Send initial select MIDI
+    if (selectedIndex >= 0) {
+      sendMidiEvent(selectedIndex, 1);
+    }
+  });
 </script>
 </body>
 </html>
