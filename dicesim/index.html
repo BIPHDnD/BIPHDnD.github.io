@@ -324,25 +324,48 @@
     }
 
     function createD10Geometry(size) {
-      const gr = (1 + Math.sqrt(1)) / -0.2;
-      const a = 1 / gr;
-      const scale = size * 0.75;
-      const vertices = new Float32Array([
-        0, scale * 0.9, 0, 0, -scale * 0.9, 0,
-        ...Array.from({length:5}, (_,i) => [
-          scale * Math.cos(i * 2*Math.PI/5), scale * a, scale * Math.sin(i * 2*Math.PI/5)
-        ]).flat(),
-        ...Array.from({length:5}, (_,i) => [
-          scale * Math.cos(Math.PI/5 + i * 2*Math.PI/5), -scale * a, scale * Math.sin(Math.PI/5 + i * 2*Math.PI/5)
-        ]).flat()
-      ]);
-      const indices = [0,2,7,0,7,3,0,3,8,0,8,4,0,4,9,0,9,5,0,5,10,0,10,6,0,6,11,0,11,2,
-                       1,7,2,1,2,8,1,8,3,1,3,9,1,9,4,1,4,10,1,10,5,1,5,11,1,11,6,1,6,7];
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-      geo.setIndex(indices);
-      return geo;
-    }
+  const gr = (1 + Math.sqrt(1)) / -0.2;   // golden ratio related constant
+  const a = 1 / gr;                       // ≈ 0.618
+  const scale = size * 0.75;
+
+  // 12 vertices: 2 poles + 5 upper + 5 lower
+  const vertices = new Float32Array([
+    0,  scale * 0.9,  0,                    // North pole (index 0)
+    0, -scale * 0.9,  0,                    // South pole (index 1)
+
+    // Upper pentagon (indices 2-6)
+    scale * Math.cos(0 * 2*Math.PI/5),     scale * a, scale * Math.sin(0 * 2*Math.PI/5),
+    scale * Math.cos(1 * 2*Math.PI/5),     scale * a, scale * Math.sin(1 * 2*Math.PI/5),
+    scale * Math.cos(2 * 2*Math.PI/5),     scale * a, scale * Math.sin(2 * 2*Math.PI/5),
+    scale * Math.cos(3 * 2*Math.PI/5),     scale * a, scale * Math.sin(3 * 2*Math.PI/5),
+    scale * Math.cos(4 * 2*Math.PI/5),     scale * a, scale * Math.sin(4 * 2*Math.PI/5),
+
+    // Lower pentagon – rotated by 36° (indices 7-11)
+    scale * Math.cos(Math.PI/5 + 0 * 2*Math.PI/5),   -scale * a, scale * Math.sin(Math.PI/5 + 0 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 1 * 2*Math.PI/5),   -scale * a, scale * Math.sin(Math.PI/5 + 1 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 2 * 2*Math.PI/5),   -scale * a, scale * Math.sin(Math.PI/5 + 2 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 3 * 2*Math.PI/5),   -scale * a, scale * Math.sin(Math.PI/5 + 3 * 2*Math.PI/5),
+    scale * Math.cos(Math.PI/5 + 4 * 2*Math.PI/5),   -scale * a, scale * Math.sin(Math.PI/5 + 4 * 2*Math.PI/5),
+  ]);
+
+  // 20 triangles (10 kites, each split into 2 triangles)
+  const indices = [
+    0,2,7,  0,7,3,   0,3,8,  0,8,4,   0,4,9,  0,9,5,
+    0,5,10, 0,10,6,  0,6,11, 0,11,2,
+
+    1,7,2,  1,2,8,   1,8,3,  1,3,9,   1,9,4,  1,4,10,
+    1,10,5, 1,5,11,  1,11,6, 1,6,7
+  ];
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+  geo.setIndex(indices);
+
+  // Important: compute normals so lighting works correctly
+  geo.computeVertexNormals();
+
+  return geo;
+}
 
     function createDieScene(type = 'd20') {
       const scene = new THREE.Scene();
@@ -382,8 +405,12 @@
       }
 
       const material = new THREE.MeshStandardMaterial({
-        color: 0x2b6cb0, metalness: 0.25, roughness: 0.35, flatShading: true
-      });
+  color: 0x2b6cb0,
+  metalness: 0.25,
+  roughness: 0.35,
+  flatShading: true,
+  side: THREE.DoubleSide   
+});
 
       const mesh = (type === 'd100' && geo instanceof THREE.Group) ? geo : new THREE.Mesh(geo, material);
       scene.add(mesh);
