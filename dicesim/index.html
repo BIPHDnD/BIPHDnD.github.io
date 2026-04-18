@@ -595,7 +595,9 @@
     let disadvantage = false;
     let rollHistory = [];
     let isFirstLoad = true;        // For breathing animation
-    let lastPanelExpandTime = 0;   // For 250ms protection
+    let lastPanelExpandTime = 0;   // ← Main timestamp for protection
+
+    const PROTECTION_MS = 500;     // 500ms protection window
     const MAX_HISTORY = 30;
     const MAX_PER_DIE = 10;
 
@@ -633,6 +635,21 @@ function applyCurrentHueToImage(img) {
     img.style.filter = `hue-rotate(${theme.hue}deg) saturate(1.25) brightness(1.12)`;
   }
 }
+
+// === Panel Toggle with Protection ===
+    function toggleDicePanel(expandOnly = false) {
+      const panel = document.getElementById('custom-dice-panel');
+      const wasCollapsed = panel.classList.contains('collapsed');
+
+      if (expandOnly && !wasCollapsed) return;
+
+      panel.classList.toggle('collapsed');
+
+      const now = Date.now();
+      if (!panel.classList.contains('collapsed')) {
+        lastPanelExpandTime = now;   // Record expansion time
+      }
+    }
 
     function updatePreview() {
   const diceParts = [];
@@ -714,126 +731,112 @@ function applyCurrentHueToImage(img) {
       });
     }
 
-function initCustomDicePanel() {
-  const panel = document.getElementById('custom-dice-panel');
-  panel.innerHTML = '';
-
-  // === Dice Collapse Button ===
-  const collapseBtn = document.createElement('div');
-  collapseBtn.className = 'dice-collapse-btn';
-  collapseBtn.id = 'dice-collapse-btn';
-
-  // Add first-load class for breathing animation
-  collapseBtn.classList.add('first-load');
-
-  const collapseGif = createDieGIF('d20');
-  collapseBtn.appendChild(collapseGif);
-
-  const indicator = document.createElement('div');
-  indicator.className = 'collapse-indicator';
-  indicator.textContent = '↑';
-  collapseBtn.appendChild(indicator);
-
-  const label = document.createElement('div');
-  label.className = 'dice-collapse-label';
-  label.textContent = 'Dice';
-  collapseBtn.appendChild(label);
-
-  // Timer for 250ms protection
-  let lastExpandTime = 0;
-
-  const expandPanel = () => {
-    lastExpandTime = Date.now();
-    panel.classList.remove('collapsed');
-  };
-
-  collapseBtn.onmouseenter = expandPanel;
-  collapseBtn.ontouchstart = expandPanel;   // Better mobile support
-
-  // Hover / Touch expands
-  collapseBtn.onmouseenter = () => {
-    lastExpandTime = Date.now();
-    panel.classList.remove('collapsed');
-  };
-
-  collapseBtn.ontouchstart = () => {
-    lastExpandTime = Date.now();
-    panel.classList.remove('collapsed');
-  };
-
-  // Click with 250ms protection
-  collapseBtn.onclick = (e) => {
-    e.stopPropagation();
-
-    const now = Date.now();
-    const recentlyExpanded = (now - lastExpandTime) < 250;
-
-    if (recentlyExpanded) {
-      return; // Prevent accidental dice selection
+function isInProtectionWindow() {
+      return (Date.now() - lastPanelExpandTime) < PROTECTION_MS;
     }
 
-    panel.classList.toggle('collapsed');
-  };
+function initCustomDicePanel() {
+      const panel = document.getElementById('custom-dice-panel');
+      panel.innerHTML = '';
 
-  panel.appendChild(collapseBtn);
+      // === Collapse Button ===
+      const collapseBtn = document.createElement('div');
+      collapseBtn.className = 'dice-collapse-btn';
+      collapseBtn.id = 'dice-collapse-btn';
 
-  // === Individual dice buttons ===
-  const types = ['d4','d6','d8','d10','d12','d20','d100'];
+      if (isFirstLoad) collapseBtn.classList.add('first-load');
 
-  types.forEach(type => {
-    const btn = document.createElement('div');
-    btn.className = 'custom-die-btn';
+      const collapseGif = createDieGIF('d20');
+      collapseBtn.appendChild(collapseGif);
 
-    const gifContainer = document.createElement('div');
-    gifContainer.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center;';
-    
-    const gif = createDieGIF(type);
-    gifContainer.appendChild(gif);
-    btn.appendChild(gifContainer);
+      const indicator = document.createElement('div');
+      indicator.className = 'collapse-indicator';
+      indicator.textContent = '↑';
+      collapseBtn.appendChild(indicator);
 
-    const dieLabel = document.createElement('div');
-    dieLabel.className = 'die-label';
-    dieLabel.textContent = type.toUpperCase();
-    btn.appendChild(dieLabel);
+      const label = document.createElement('div');
+      label.className = 'dice-collapse-label';
+      label.textContent = 'Dice';
+      collapseBtn.appendChild(label);
 
-    const mult = document.createElement('div');
-    mult.className = 'multiplier';
-    btn.appendChild(mult);
+      // Unified click/touch handler
+      const handleCollapseClick = (e) => {
+        e.stopPropagation();
+        if (isInProtectionWindow()) return; // Prevent immediate collapse after expand
+        toggleDicePanel();
+      };
 
-    const resetX = document.createElement('div');
-    resetX.className = 'reset-x';
-    resetX.textContent = '×';
-    resetX.title = `Reset ${type.toUpperCase()}`;
-    btn.appendChild(resetX);
+      collapseBtn.addEventListener('click', handleCollapseClick);
+      collapseBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleCollapseClick(e);
+      });
 
-    // Prevent click if panel was just expanded (mobile safety)
-    btn.onclick = (e) => {
-      if (e.target.classList.contains('reset-x')) return;
-
-      const now = Date.now();
-      const recentlyExpanded = (now - lastExpandTime) < 500;
-
-      if (recentlyExpanded) {
-        return;   // Block accidental selection
+      // Hover to expand (desktop only)
+      if (!('ontouchstart' in window)) {
+        collapseBtn.addEventListener('mouseenter', () => {
+          toggleDicePanel(true);
+        });
       }
 
-      customDice[type].count = (customDice[type].count + 1) % (MAX_PER_DIE + 1) || 1;
-      updateCustomDiceUI();
-      updatePreview();
-    };
+      panel.appendChild(collapseBtn);
 
-    resetX.onclick = (e) => {
-      e.stopImmediatePropagation();
-      customDice[type].count = 0;
-      updateCustomDiceUI();
-      updatePreview();
-      clearResults();
-    };
+      // === Individual Dice Buttons ===
+      const types = ['d4','d6','d8','d10','d12','d20','d100'];
 
-    panel.appendChild(btn);
-  });
+      types.forEach(type => {
+        const btn = document.createElement('div');
+        btn.className = 'custom-die-btn';
 
-  // Advanced Options Container (unchanged)
+        const gifContainer = document.createElement('div');
+        gifContainer.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center;';
+        const gif = createDieGIF(type);
+        gifContainer.appendChild(gif);
+        btn.appendChild(gifContainer);
+
+        const dieLabel = document.createElement('div');
+        dieLabel.className = 'die-label';
+        dieLabel.textContent = type.toUpperCase();
+        btn.appendChild(dieLabel);
+
+        const mult = document.createElement('div');
+        mult.className = 'multiplier';
+        btn.appendChild(mult);
+
+        const resetX = document.createElement('div');
+        resetX.className = 'reset-x';
+        resetX.textContent = '×';
+        resetX.title = `Reset ${type.toUpperCase()}`;
+        btn.appendChild(resetX);
+
+        // Dice selection with protection
+        const handleDieClick = (e) => {
+          if (e.target.classList.contains('reset-x')) return;
+          if (isInProtectionWindow()) return; // ← 500ms protection
+
+          customDice[type].count = (customDice[type].count + 1) % (MAX_PER_DIE + 1) || 1;
+          updateCustomDiceUI();
+          updatePreview();
+        };
+
+        btn.addEventListener('click', handleDieClick);
+        btn.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          handleDieClick(e);
+        });
+
+        resetX.addEventListener('click', (e) => {
+          e.stopImmediatePropagation();
+          customDice[type].count = 0;
+          updateCustomDiceUI();
+          updatePreview();
+          clearResults();
+        });
+
+        panel.appendChild(btn);
+      });
+
+  // === Advanced Options Container ===
   const advancedContainer = document.createElement('div');
   advancedContainer.style.position = 'relative';
   advancedContainer.style.width = '56px';
@@ -869,7 +872,7 @@ function initCustomDicePanel() {
 
   panel.appendChild(advancedContainer);
 
-  // Global Reset All
+  // === Global Reset All ===
   const resetAll = document.createElement('button');
   resetAll.textContent = '⟲';
   resetAll.className = 'small-control-btn';
@@ -888,7 +891,7 @@ function initCustomDicePanel() {
   };
   panel.appendChild(resetAll);
 
-  // Start collapsed on first load
+  // Start collapsed
   panel.classList.add('collapsed');
 }
 
@@ -1346,17 +1349,16 @@ function init() {
   });
 
     // Click/tap anywhere on background → collapse panel
-  document.addEventListener('click', (e) => {
-    const panel = document.getElementById('custom-dice-panel');
-    const collapseBtn = document.getElementById('dice-collapse-btn');
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('custom-dice-panel');
+  const collapseBtn = document.getElementById('dice-collapse-btn');
 
-    if (!panel.classList.contains('collapsed') && 
-        !panel.contains(e.target) && 
-        !collapseBtn.contains(e.target)) {
-      
-      panel.classList.add('collapsed');
-    }
-  });
+  if (!panel.classList.contains('collapsed') &&
+      !panel.contains(e.target) &&
+      !collapseBtn.contains(e.target)) {
+    panel.classList.add('collapsed');
+  }
+});
 
   document.getElementById('roll-button').onclick = performCustomRoll;
   document.getElementById('history-btn').onclick = showHistoryModal;
