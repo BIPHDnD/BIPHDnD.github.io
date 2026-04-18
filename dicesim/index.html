@@ -46,7 +46,7 @@
     }
 
         #preview-text {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: var(--accent);
       text-shadow: 0 2px 8px rgba(0,0,0,0.6);
@@ -569,7 +569,7 @@
     ☰
   </button>
   <div id="preview-area">
-    <div id="preview-text">Select your dice!</div>
+    <div id="preview-text">Select your dice! →</div>
   </div>
 
   <div id="custom-dice-panel"></div>
@@ -677,7 +677,7 @@ function applyCurrentHueToImage(img) {
   const previewEl = document.getElementById('preview-text');
 
   if (diceParts.length === 0) {
-    previewEl.innerHTML = "Select your dice!";
+    previewEl.innerHTML = "Select your dice! →";
     return;
   }
 
