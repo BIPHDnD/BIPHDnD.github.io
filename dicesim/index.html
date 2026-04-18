@@ -16,6 +16,15 @@
       --text-muted: #94a3b8;
     }
 
+    img[src$="loop.gif"] {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      pointer-events: none;         
+      -webkit-user-drag: none;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -49,7 +58,7 @@
       transform: scale(1.08);
     }
 
-    #custom-dice-panel {
+          #custom-dice-panel {
       position: fixed;
       right: 20px;
       top: 20px;
@@ -59,7 +68,61 @@
       align-items: center;
       gap: 8px;
       user-select: none;
-      -webkit-user-select: none;
+    }
+
+    /* Collapsed state */
+    #custom-dice-panel.collapsed .custom-die-btn,
+    #custom-dice-panel.collapsed .small-control-btn {
+      opacity: 0;
+      transform: translateY(-40px);
+      pointer-events: none;
+    }
+
+    /* Expanded state */
+    #custom-dice-panel:not(.collapsed) .custom-die-btn,
+    #custom-dice-panel:not(.collapsed) .small-control-btn {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+
+    /* The "Dice" button */
+    .dice-collapse-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 9999px;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      position: relative;
+      z-index: 10;
+      transition: all 0.2s ease;
+    }
+
+    .dice-collapse-btn:hover {
+      border-color: var(--accent);
+      transform: scale(1.08);
+    }
+
+    .dice-collapse-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: crisp-edges;
+    }
+
+    .dice-collapse-label {
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      pointer-events: none;
     }
 
     .custom-die-btn {
@@ -204,7 +267,7 @@
     #history-btn {
       position: fixed;
       bottom: 30px;
-      right: 30px;
+      right: 20px;
       width: 56px;
       height: 56px;
       border-radius: 9999px;
@@ -565,6 +628,27 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
+  // === "Dice" Collapse Button (same position as d4) ===
+  const collapseBtn = document.createElement('div');
+  collapseBtn.className = 'dice-collapse-btn';
+  collapseBtn.id = 'dice-collapse-btn';
+
+  const collapseGif = createDieGIF('d20');
+  collapseBtn.appendChild(collapseGif);
+
+  const label = document.createElement('div');
+  label.className = 'dice-collapse-label';
+  label.textContent = 'Dice';
+  collapseBtn.appendChild(label);
+
+  // Hover or click to expand
+  const expandPanel = () => panel.classList.remove('collapsed');
+  collapseBtn.onmouseenter = expandPanel;
+  collapseBtn.onclick = expandPanel;
+
+  panel.appendChild(collapseBtn);
+
+  // === Individual dice buttons (d4, d6, etc.) ===
   const types = ['d4','d6','d8','d10','d12','d20','d100'];
 
   types.forEach(type => {
@@ -573,15 +657,14 @@ function initCustomDicePanel() {
 
     const gifContainer = document.createElement('div');
     gifContainer.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center;';
-    
     const gif = createDieGIF(type);
     gifContainer.appendChild(gif);
     btn.appendChild(gifContainer);
 
-    const label = document.createElement('div');
-    label.className = 'die-label';
-    label.textContent = type.toUpperCase();
-    btn.appendChild(label);
+    const dieLabel = document.createElement('div');
+    dieLabel.className = 'die-label';
+    dieLabel.textContent = type.toUpperCase();
+    btn.appendChild(dieLabel);
 
     const mult = document.createElement('div');
     mult.className = 'multiplier';
@@ -611,7 +694,7 @@ function initCustomDicePanel() {
     panel.appendChild(btn);
   });
 
-    // Advanced Options Container
+  // Advanced Options Button
   const advancedContainer = document.createElement('div');
   advancedContainer.style.position = 'relative';
   advancedContainer.style.width = '56px';
@@ -620,18 +703,14 @@ function initCustomDicePanel() {
   const advancedBtn = document.createElement('button');
   advancedBtn.textContent = '- +';
   advancedBtn.className = 'small-control-btn';
-  advancedBtn.style.fontSize = '1.3rem';
-  advancedBtn.style.letterSpacing = '0px';
-  advancedBtn.title = 'Advanced Options';
+  advancedBtn.style.fontSize = '1.2rem';
   advancedBtn.onclick = showAdvancedOptionsModal;
   advancedContainer.appendChild(advancedBtn);
 
-  // Reset-X for Advanced Options - only visible when active
   const advResetX = document.createElement('div');
   advResetX.className = 'reset-x';
   advResetX.textContent = '×';
   advResetX.title = 'Reset Advanced Options';
-  advResetX.style.zIndex = '60';
   advancedContainer.appendChild(advResetX);
 
   advResetX.onclick = (e) => {
@@ -651,7 +730,6 @@ function initCustomDicePanel() {
   const resetAll = document.createElement('button');
   resetAll.textContent = '⟲';
   resetAll.className = 'small-control-btn';
-  resetAll.title = 'Reset All Dice';
   resetAll.onclick = () => {
     Object.values(customDice).forEach(d => d.count = 0);
     modifier = 0;
@@ -665,6 +743,8 @@ function initCustomDicePanel() {
     updateAdvancedLabel();
   };
   panel.appendChild(resetAll);
+
+  panel.classList.remove('collapsed');
 }
 
 function updateAdvancedLabel() {
@@ -723,6 +803,7 @@ function performCustomRoll() {
   }
 
   playRandomRollSound();
+  document.getElementById('custom-dice-panel').classList.add('collapsed');
   clearResults();
 
   const parts = [];
