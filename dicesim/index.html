@@ -7,9 +7,18 @@
   <link rel="icon" type="image/png" href="d20icon.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    :root {
+      --accent: #60a5fa;
+      --bg: #0a0f1c;
+      --panel: #1e2937;
+      --border: #334155;
+      --text: #e0f2fe;
+      --text-muted: #94a3b8;
+    }
+
     body {
-      background: #0a0f1c;
-      color: #e0f2fe;
+      background: var(--bg);
+      color: var(--text);
       font-family: system-ui, sans-serif;
       margin: 0;
       padding: 20px;
@@ -17,6 +26,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: background-color 0.4s ease;
     }
 
     #preview-area {
@@ -29,7 +39,7 @@
     #preview-text {
       font-size: 1.75rem;
       font-weight: 700;
-      color: #60a5fa;
+      color: var(--accent);
       text-shadow: 0 2px 8px rgba(0,0,0,0.6);
       transition: all 0.3s ease;
     }
@@ -52,13 +62,13 @@
       -webkit-user-select: none;
     }
 
-            .custom-die-btn {
+    .custom-die-btn {
       position: relative;
       width: 56px;
       height: 56px;
       border-radius: 9999px;
-      background: #1e2937;
-      border: 2px solid #334155;
+      background: var(--panel);
+      border: 2px solid var(--border);
       /* overflow: hidden; */
       cursor: pointer;
       transition: all 0.2s ease;
@@ -66,14 +76,14 @@
     }
 
     .custom-die-btn:hover {
-      transform: scale(1.1);
-      border-color: #60a5fa;
+      /* transform: scale(1.03); */
+      border-color: var(--accent);
     }
 
     .custom-die-btn img {
+      border-radius: 9999px;
       width: 100%;
       height: 100%;
-      border-radius: 9999px;
       object-fit: contain;
       image-rendering: crisp-edges;
     }
@@ -82,7 +92,7 @@
       position: absolute;
       top: -4px;
       left: -6px;
-      background: #1e40af;
+      background: #515151;
       color: white;
       font-size: 10px;
       font-weight: 700;
@@ -101,7 +111,7 @@
       right: -4px;
       background: #991b1b;
       color: white;
-      font-size: 12px;
+      font-size: 10px;
       width: 16px;
       height: 16px;
       display: flex;
@@ -115,6 +125,12 @@
     }
     .reset-x.visible { opacity: 1; }
 
+    .reset-x:hover {
+      background: #d41515;
+      transform: scale(1.05);
+      transition: all 0.2s ease;
+    }
+
     .die-label {
       position: absolute;
       bottom: 2px;
@@ -122,20 +138,19 @@
       transform: translateX(-50%);
       font-size: 9px;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--text-muted);
       text-shadow: 0 1px 3px rgba(0,0,0,0.8);
       z-index: 10;
       pointer-events: none;
     }
 
-
     .small-control-btn {
       width: 56px;
       height: 56px;
       border-radius: 9999px;
-      background: #1e2937;
-      border: 2px solid #334155;
-      color: #94a3b8;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      color: var(--text-muted);
       font-size: 1.5rem;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -148,8 +163,8 @@
 
     .small-control-btn:hover {
       transform: scale(1.1);
-      border-color: #60a5fa;
-      color: #e0f2fe;
+      border-color: var(--accent);
+      color: var(--text);
     }
 
     #roll-button {
@@ -158,9 +173,9 @@
       left: 50%;
       transform: translateX(-50%);
       padding: 16px 60px;
-      background: #1e2937;
-      color: white;
-      border: 2px solid #334155;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      color: var(--text);
       border-radius: 9999px;
       font-size: 1.35rem;
       font-weight: 700;
@@ -173,15 +188,16 @@
     }
 
     #roll-button:hover:not(:disabled) {
-      border-color: #60a5fa;
-      background: #1e40af;
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #0a0f1c;
       transform: translateX(-50%) scale(1.05);
     }
 
     #roll-button:disabled {
-      background: #1e2937;
+      background: var(--panel);
       color: #64748b;
-      border-color: #475569;
+      border-color: var(--border);
       cursor: not-allowed;
     }
 
@@ -192,9 +208,9 @@
       width: 56px;
       height: 56px;
       border-radius: 9999px;
-      background: #1e2937;
-      border: 2px solid #334155;
-      color: #94a3b8;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      color: var(--text-muted);
       font-size: 1.5rem;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -207,8 +223,8 @@
 
     #history-btn:hover {
       transform: scale(1.1);
-      border-color: #60a5fa;
-      color: #e0f2fe;
+      border-color: var(--accent);
+      color: var(--text);
     }
 
     #dice-results {
@@ -216,11 +232,11 @@
       margin-top: -20px;
       margin-bottom: 100px;          
       padding: 1.5rem;
-      background: #0f172a;
-      border: 1px solid #334155;
       border-radius: 12px;
       max-width: 520px;
       width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
     }
 
 
@@ -236,13 +252,17 @@
       width: 120px;
       height: 150px;
       background: #000000;            
-      border: 1px solid #334155;
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       transition: all 0.2s ease;
+      border: 1px solid var(--border);
     }
 
+    .die-mini:hover {
+      border-color: var(--accent);
+      transform: scale(1.04);
+    }
 
     .die-mini img {
       width: 200%;
@@ -261,6 +281,7 @@
       color: #e0f2fe;
       text-shadow: 0 2px 4px rgba(0,0,0,0.8);
       transition: color 0.3s ease;
+      /* color: var(--text); */
     }
 
     .result-number.critical-fail { color: #ef4444; }
@@ -274,8 +295,9 @@
       text-align: center;
       font-size: 1.45rem;
       font-weight: 700;
-      color: #67e8f9;
+      color: #ffffff;
     }
+    
 
     .modal {
       position: fixed;
@@ -288,8 +310,8 @@
     }
 
     .modal-content {
-      background: #0f172a;
-      border: 1px solid #334155;
+      background: var(--panel);
+      border: 1px solid var(--border);
       border-radius: 12px;
       width: 90%;
       max-width: 520px;
@@ -299,42 +321,108 @@
       position: relative;
     }
 
-      .history-entry {
+    .history-entry {
       display: flex;
       align-items: center;
-      justify-content: center;           /* Centers the whole row */
+      justify-content: center;
       padding: 14px 0;
-      border-bottom: 1px solid #334155;
+      border-bottom: 1px solid var(--border);
       gap: 16px;
-      flex-wrap: wrap;                   /* Allows wrapping on small screens */
+      flex-wrap: wrap;
     }
 
     .history-title {
-      color: #60a5fa;
+      color: var(--accent);
       font-size: 1rem;
-      flex: 1 1 280px;                   /* Grow but allow wrap */
-      text-align: center;                /* Centered on all sizes */
+      flex: 1 1 280px;
+      text-align: center;
     }
 
     .history-total {
-      color: #e0f2fe;
+      color: var(--text);
       font-weight: 700;
       font-size: 1.05rem;
-      text-align: center;                /* Text inside is centered */
-      flex: 1 1 320px;                   /* Good width for the roll math */
+      text-align: center;
+      flex: 1 1 320px;
       max-width: 100%;
-      word-break: break-word;            /* Helps long expressions wrap cleanly */
+      word-break: break-word;
     }
 
     .history-timestamp {
-      color: #94a3b8;
+      color: var(--text-muted);
       font-size: 0.95rem;
       text-align: center;
       flex: 1 1 100px;
       white-space: nowrap;
     }
 
-    /* Small screen optimization - everything stacks and centers nicely */
+    /* Hamburger Menu */
+    .hamburger-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      width: 56px;
+      height: 56px;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      color: var(--text);
+      font-size: 1.8rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+
+    .hamburger-btn:hover {
+      border-color: var(--accent);
+      transform: scale(1.1);
+    }
+
+    /* Theme Menu Dropdown */
+    #theme-menu {
+      position: fixed;
+      top: 90px;
+      left: 20px;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1100;
+      min-width: 180px;
+    }
+
+    .theme-option {
+      padding: 10px 16px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .theme-option:hover {
+      background: var(--border);
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    .theme-option.active {
+      background: var(--accent);
+      color: #0a0f1c;
+      border-color: var(--accent);
+    }
+
+    /* Small screen optimization for history */
     @media (max-width: 520px) {
       .history-entry {
         flex-direction: column;
@@ -342,7 +430,6 @@
         gap: 8px;
         text-align: center;
       }
-      
       .history-title,
       .history-total,
       .history-timestamp {
@@ -353,7 +440,9 @@
   </style>
 </head>
 <body>
-
+<button id="theme-menu-btn" class="hamburger-btn">
+    ☰
+  </button>
   <div id="preview-area">
     <div id="preview-text">Select your dice!</div>
   </div>
@@ -446,7 +535,7 @@
       });
     }
 
-    function initCustomDicePanel() {
+function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
@@ -462,35 +551,51 @@
     gifContainer.appendChild(gif);
     btn.appendChild(gifContainer);
 
-    // Multiplier (higher z-index)
-    const mult = document.createElement('div');
-    mult.className = 'multiplier';
-    btn.appendChild(mult);
-
-    // Reset X (higher z-index)
-    const resetX = document.createElement('div');
-    resetX.className = 'reset-x';
-    resetX.textContent = '×';
-    btn.appendChild(resetX);
-
+    // Label
     const label = document.createElement('div');
     label.className = 'die-label';
     label.textContent = type.toUpperCase();
     btn.appendChild(label);
 
-    btn.onclick = () => {
+    // Multiplier
+    const mult = document.createElement('div');
+    mult.className = 'multiplier';
+    btn.appendChild(mult);
+
+    // Reset X button
+    const resetX = document.createElement('div');
+    resetX.className = 'reset-x';
+    resetX.textContent = '×';
+    resetX.title = `Reset ${type.toUpperCase()}`;   // tooltip
+    btn.appendChild(resetX);
+
+    // Main button click = increase count
+    btn.onclick = (e) => {
+      // If user clicked the reset-x, don't trigger main button
+      if (e.target.classList.contains('reset-x')) return;
+
       customDice[type].count = (customDice[type].count + 1) % (MAX_PER_DIE + 1) || 1;
       updateCustomDiceUI();
       updatePreview();
     };
 
+    // Reset-X click handler
+    resetX.onclick = (e) => {
+      e.stopImmediatePropagation();        // Prevent triggering the parent btn click
+      customDice[type].count = 0;
+      updateCustomDiceUI();
+      updatePreview();
+      clearResults();                      // Optional: clear current results when resetting a die
+    };
+
     panel.appendChild(btn);
   });
 
-  // Reset button
+  // Global Reset button
   const resetAll = document.createElement('button');
   resetAll.textContent = '⟲';
   resetAll.className = 'small-control-btn';
+  resetAll.title = 'Reset All Dice';
   resetAll.onclick = () => {
     Object.values(customDice).forEach(d => d.count = 0);
     clearResults();
@@ -584,7 +689,7 @@
           });
 
           document.getElementById('result-summary').innerHTML = 
-            `${individualRolls.join(' + ')} = <span style="color:#67e8f9;">${sum}</span>`;
+            `${individualRolls.join(' + ')} = <span style="color:#ffffff;">${sum}</span>`;
 
           rollHistory.unshift({ 
             expression, 
@@ -645,14 +750,156 @@ function showHistoryModal() {
   document.addEventListener('keydown', escHandler);
 }
 
-    function init() {
+        function init() {
       initCustomDicePanel();
       updatePreview();
 
+      // Setup hamburger menu
+      const hamburger = document.getElementById('theme-menu-btn');
+      const themeMenu = createThemeMenu();
+
+      hamburger.onclick = toggleThemeMenu;
+
+      // Close menu when clicking outside
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('theme-menu');
+        if (menu && !hamburger.contains(e.target) && !menu.contains(e.target)) {
+          menu.style.display = 'none';
+        }
+      });
+
       document.getElementById('roll-button').onclick = performCustomRoll;
       document.getElementById('history-btn').onclick = showHistoryModal;
+
+      // Apply default theme on load
+      applyTheme('default');
     }
 
+
+
+    // Color Themes
+    const themes = {
+      default: {
+        name: "Cyan", 
+        hue: 330,   
+        accent: "#22d3ee",
+        bg: "#0a0f1c",
+        panel: "#1f2e3b",
+        border: "#334d5c",
+        text: "#ecfeff",
+        preview: "#22d3ee"
+      },
+      red: {
+        name: "Red",
+        hue: 135,        
+        accent: "#f87171",
+        bg: "#1a0f0f",
+        panel: "#3b1f1f",
+        border: "#5c2b2b",
+        text: "#fee2e2",
+        preview: "#f87171"
+      },
+      green: {
+        name: "Green",
+        hue: 280,
+        accent: "#4ade80",
+        bg: "#0f1a12",
+        panel: "#1f2e24",
+        border: "#334d3f",
+        text: "#ecfdf5",
+        preview: "#4ade80"
+      },
+      purple: {
+        name: "Purple",
+        hue: 30,
+        accent: "#c084fc",
+        bg: "#140f1f",
+        panel: "#2a1f3b",
+        border: "#4a3b5c",
+        text: "#f3e8ff",
+        preview: "#c084fc"
+      },
+      orange: {
+        name: "Orange",
+        hue: 175,  
+        accent: "#fb923c",
+        bg: "#1f140f",
+        panel: "#3b2a1f",
+        border: "#5c4633",
+        text: "#fff7ed",
+        preview: "#fb923c"
+      },
+    };
+
+    let currentTheme = 'default';
+
+    function applyTheme(themeKey) {
+      const theme = themes[themeKey];
+      if (!theme) return;
+
+      currentTheme = themeKey;
+
+      // Update root CSS variables for consistent theming
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      document.documentElement.style.setProperty('--bg', theme.bg);
+      document.documentElement.style.setProperty('--panel', theme.panel);
+      document.documentElement.style.setProperty('--border', theme.border);
+      document.documentElement.style.setProperty('--text', theme.text);
+
+      // Apply to body and major elements
+      document.body.style.backgroundColor = theme.bg;
+
+      // Hue filter + slight saturation/brightness boost for GIFs
+      const allGifs = document.querySelectorAll('img[src$="loop.gif"]');
+      allGifs.forEach(img => {
+        img.style.filter = `hue-rotate(${theme.hue}deg) saturate(1.25) brightness(1.12)`;
+      });
+
+      // Update active menu item
+      document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.theme === themeKey);
+      });
+
+      // Flash preview text
+      const preview = document.getElementById('preview-text');
+      if (preview) {
+        preview.style.color = theme.preview;
+        setTimeout(() => preview.style.color = theme.accent, 600);
+      }
+    }
+
+    function createThemeMenu() {
+      const menu = document.createElement('div');
+      menu.id = 'theme-menu';
+
+      Object.keys(themes).forEach(key => {
+        const option = document.createElement('div');
+        option.className = 'theme-option';
+        option.textContent = themes[key].name;
+        option.dataset.theme = key;
+        
+        option.onclick = () => {
+          applyTheme(key);
+          // Close menu after selection
+          menu.style.display = 'none';
+        };
+        
+        menu.appendChild(option);
+      });
+
+      document.body.appendChild(menu);
+      return menu;
+    }
+
+    // Toggle menu
+    function toggleThemeMenu() {
+      const menu = document.getElementById('theme-menu');
+      if (menu) {
+        menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+      }
+    }
+
+  
     window.onload = init;
   </script>
 </body>
