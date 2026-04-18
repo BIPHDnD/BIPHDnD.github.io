@@ -103,8 +103,8 @@
 
     /* Pulsing border when collapsed */
     #custom-dice-panel.collapsed .dice-collapse-btn {
-      animation: diceButtonBreath 2.8s infinite ease-in-out,
-                 diceButtonPulse 3.5s infinite ease-in-out;
+      animation: diceButtonBreath 0.8s infinite ease-in-out,
+                 diceButtonPulse 1.5s infinite ease-in-out;
     }
 
     @keyframes diceButtonPulse {
@@ -711,7 +711,7 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
-    // === Dice Collapse Button ===
+      // === Dice Collapse Button ===
   const collapseBtn = document.createElement('div');
   collapseBtn.className = 'dice-collapse-btn';
   collapseBtn.id = 'dice-collapse-btn';
@@ -729,28 +729,31 @@ function initCustomDicePanel() {
   label.textContent = 'Dice';
   collapseBtn.appendChild(label);
 
-  // Timer for grace period after hover
-  let lastHoverExpandTime = 0;
+  // Timer for grace period
+  let lastExpandTime = 0;
 
-  // Hover always expands
-  collapseBtn.onmouseenter = () => {
-    lastHoverExpandTime = Date.now();
+  // Hover / Touch start → expand
+  const expandPanel = () => {
+    lastExpandTime = Date.now();
     panel.classList.remove('collapsed');
   };
 
-  // Click with 500ms grace period protection
+  collapseBtn.onmouseenter = expandPanel;
+  collapseBtn.ontouchstart = expandPanel;   // Better mobile support
+
+  // Click / Tap with grace period protection
   collapseBtn.onclick = (e) => {
-    e.stopPropagation();                    // Prevent background click handler
+    e.stopPropagation();
 
     const now = Date.now();
-    const recentlyExpandedByHover = (now - lastHoverExpandTime) < 500;
+    const recentlyExpanded = (now - lastExpandTime) < 250;   // 250ms grace period
 
-    if (recentlyExpandedByHover) {
-      // Ignore click for 0.5 seconds after hover expansion
+    if (recentlyExpanded) {
+      // Prevent accidental dice selection right after opening
       return;
     }
 
-    // Normal toggle after grace period
+    // Normal toggle
     panel.classList.toggle('collapsed');
   };
 
@@ -1072,18 +1075,30 @@ function performCustomRoll() {
 
       document.getElementById('result-summary').innerHTML = resultText;
 
-            // Scroll to results only if they were not already visible
+                  // Smart scroll: only scroll if results were not already visible
       const resultsEl = document.getElementById('dice-results');
+      
       if (resultsEl.style.display !== 'block') {
-        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // First time showing results - scroll to center them
+        resultsEl.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
       } else {
-        // Results already visible - just scroll to bottom smoothly
-        setTimeout(() => {
-          window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: 'smooth'
-          });
-        }, 80);
+        // Results already visible - only scroll to bottom if the bottom is not in view
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // If we're not already near the bottom, scroll down gently
+        if (scrollY + windowHeight < documentHeight - 150) {
+          setTimeout(() => {
+            window.scrollTo({
+              top: documentHeight,
+              behavior: 'smooth'
+            });
+          }, 100);
+        }
       }
 
       rollHistory.unshift({
@@ -1303,12 +1318,11 @@ function closeAdvancedModal() {
     }
   });
 
-  // NEW: Click anywhere on background → collapse dice panel
+    // Click/tap anywhere on background → collapse panel
   document.addEventListener('click', (e) => {
     const panel = document.getElementById('custom-dice-panel');
     const collapseBtn = document.getElementById('dice-collapse-btn');
 
-    // If panel is expanded AND click is NOT on the panel or its collapse button
     if (!panel.classList.contains('collapsed') && 
         !panel.contains(e.target) && 
         !collapseBtn.contains(e.target)) {
