@@ -691,7 +691,7 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
-  // === Dice Collapse Button ("Dice" button) ===
+      // === Dice Collapse Button ("Dice" button) ===
   const collapseBtn = document.createElement('div');
   collapseBtn.className = 'dice-collapse-btn';
   collapseBtn.id = 'dice-collapse-btn';
@@ -709,12 +709,26 @@ function initCustomDicePanel() {
   label.textContent = 'Dice';
   collapseBtn.appendChild(label);
 
-  // Hover to expand + click to toggle
+  // Timer to track when it was last expanded by hover
+  let lastHoverExpandTime = 0;
+
+  // Hover always expands
   collapseBtn.onmouseenter = () => {
+    lastHoverExpandTime = Date.now();
     panel.classList.remove('collapsed');
   };
 
+  // Click to toggle, but protected for 500ms after hover expand
   collapseBtn.onclick = () => {
+    const now = Date.now();
+    const recentlyExpandedByHover = (now - lastHoverExpandTime) < 500;
+
+    if (recentlyExpandedByHover) {
+      // Ignore click for 0.5s after hover expansion to prevent accidental collapse
+      return;
+    }
+
+    // Normal toggle behavior after grace period
     panel.classList.toggle('collapsed');
   };
 
