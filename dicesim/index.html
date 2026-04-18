@@ -38,26 +38,48 @@
       transition: background-color 0.4s ease;
     }
 
-    #preview-area {
-      margin-top: 20px;
-      margin-bottom: 30px;
-      text-align: center;
-      min-height: 80px;
-    }
+#preview-area {
+margin-top: 20px;
+  margin-bottom: 30px;
+  padding-left: 90px;        
+  padding-right: 90px;       
+  text-align: center;
+  min-height: 80px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
 
-        #preview-text {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-      transition: all 0.3s ease;
-      line-height: 0.8;           /* Tighter line spacing */
-    }
 
-    #preview-text.flash {
-      color: #f87171;
-      transform: scale(1.08);
-    }
+#preview-text {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  transition: all 0.3s ease;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+/* On very narrow screens, slightly reduce font size */
+@media (max-width: 380px) {
+  #preview-area {
+    padding-left: 78px;
+    padding-right: 78px;
+  }
+  
+  #preview-text {
+    font-size: 1.55rem;
+  }
+}
+
+@media (max-width: 320px) {
+  #preview-area {
+    padding-left: 70px;
+    padding-right: 70px;
+  }
+}
+
 
         #custom-dice-panel {
       position: fixed;
