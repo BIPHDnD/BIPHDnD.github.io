@@ -718,13 +718,13 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
-  // Timer to prevent accidental clicks right after expand
-  let lastExpandTime = 0;
-
   // === Dice Collapse Button ===
   const collapseBtn = document.createElement('div');
   collapseBtn.className = 'dice-collapse-btn';
   collapseBtn.id = 'dice-collapse-btn';
+
+  // Add first-load class for breathing animation
+  collapseBtn.classList.add('first-load');
 
   const collapseGif = createDieGIF('d20');
   collapseBtn.appendChild(collapseGif);
@@ -739,22 +739,30 @@ function initCustomDicePanel() {
   label.textContent = 'Dice';
   collapseBtn.appendChild(label);
 
-  // Hover / Touch start → expand
-  const expandPanel = () => {
+  // Timer for 250ms protection
+  let lastExpandTime = 0;
+
+  // Hover / Touch expands
+  collapseBtn.onmouseenter = () => {
     lastExpandTime = Date.now();
     panel.classList.remove('collapsed');
   };
 
-  collapseBtn.onmouseenter = expandPanel;
-  collapseBtn.ontouchstart = expandPanel;
+  collapseBtn.ontouchstart = () => {
+    lastExpandTime = Date.now();
+    panel.classList.remove('collapsed');
+  };
 
-  // Click to toggle (with protection)
+  // Click with 250ms protection
   collapseBtn.onclick = (e) => {
     e.stopPropagation();
-    const now = Date.now();
-    const recentlyExpanded = (now - lastExpandTime) < 500;   
 
-    if (recentlyExpanded) return;
+    const now = Date.now();
+    const recentlyExpanded = (now - lastExpandTime) < 250;
+
+    if (recentlyExpanded) {
+      return; // Prevent accidental dice selection
+    }
 
     panel.classList.toggle('collapsed');
   };
@@ -795,7 +803,7 @@ function initCustomDicePanel() {
       if (e.target.classList.contains('reset-x')) return;
 
       const now = Date.now();
-      const recentlyExpanded = (now - lastExpandTime) < 300;
+      const recentlyExpanded = (now - lastExpandTime) < 500;
 
       if (recentlyExpanded) {
         return;   // Block accidental selection
