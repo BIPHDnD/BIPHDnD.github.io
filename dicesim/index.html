@@ -45,12 +45,13 @@
       min-height: 80px;
     }
 
-    #preview-text {
+        #preview-text {
       font-size: 1.75rem;
       font-weight: 700;
       color: var(--accent);
       text-shadow: 0 2px 8px rgba(0,0,0,0.6);
       transition: all 0.3s ease;
+      line-height: 0.8;           /* Tighter line spacing */
     }
 
     #preview-text.flash {
@@ -58,7 +59,7 @@
       transform: scale(1.08);
     }
 
-          #custom-dice-panel {
+        #custom-dice-panel {
       position: fixed;
       right: 20px;
       top: 20px;
@@ -86,7 +87,7 @@
       pointer-events: all;
     }
 
-    /* The "Dice" button */
+    /* Dice Button */
     .dice-collapse-btn {
       width: 56px;
       height: 56px;
@@ -97,8 +98,7 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       position: relative;
-      z-index: 10;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
     }
 
     .dice-collapse-btn:hover {
@@ -106,11 +106,39 @@
       transform: scale(1.08);
     }
 
+    /* Dark overlay when expanded */
+    #custom-dice-panel:not(.collapsed) .dice-collapse-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.50);
+      z-index: 5;
+      pointer-events: none;
+    }
+
     .dice-collapse-btn img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       image-rendering: crisp-edges;
+    }
+
+    /* Collapse indicator (^) */
+    .dice-collapse-btn .collapse-indicator {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 18px;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #custom-dice-panel:not(.collapsed) .dice-collapse-btn:hover .collapse-indicator {
+      opacity: 1;
     }
 
     .dice-collapse-label {
@@ -132,14 +160,13 @@
       border-radius: 9999px;
       background: var(--panel);
       border: 2px solid var(--border);
-      /* overflow: hidden; */
       cursor: pointer;
       transition: all 0.2s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
     .custom-die-btn:hover {
-      /* transform: scale(1.03); */
+      transform: scale(1.03);
       border-color: var(--accent);
     }
 
@@ -581,14 +608,50 @@ function applyCurrentHueToImage(img) {
 }
 
     function updatePreview() {
-      const parts = [];
-      Object.entries(customDice).forEach(([type, data]) => {
-        if (data.count > 0) parts.push(`${data.count}${type}`);
-      });
-      document.getElementById('preview-text').textContent = 
-        parts.length ? parts.join(' + ') : "Select your dice!";
-      updateRollButtonState();
+  const diceParts = [];
+  const modifierParts = [];
+
+  // Collect dice
+  Object.entries(customDice).forEach(([type, data]) => {
+    if (data.count > 0) {
+      diceParts.push(`${data.count}${type}`);
     }
+  });
+
+  // Modifier
+  if (modifier !== 0) {
+    modifierParts.push(modifier > 0 ? `+${modifier}` : `${modifier}`);
+  }
+
+  // Drop / Advantage options
+  const optionParts = [];
+  if (dropLowest) optionParts.push("drop lowest");
+  if (dropHighest) optionParts.push("drop highest");
+  if (advantage) optionParts.push("advantage");
+  if (disadvantage) optionParts.push("disadvantage");
+
+  const previewEl = document.getElementById('preview-text');
+
+  if (diceParts.length === 0) {
+    previewEl.innerHTML = "Select your dice!";
+    return;
+  }
+
+  let html = diceParts.join(' + ');
+
+  // Modifier on same line, not bold
+  if (modifierParts.length > 0) {
+    html += ` <span style="color:#e0f2fe; font-weight:400;">(${modifierParts.join(', ')})</span>`;
+  }
+
+  // Drop/advantage on new line, smaller and tighter spacing
+  if (optionParts.length > 0) {
+    html += `<br><span style="font-size:0.92rem; color:#e0f2fe; opacity:0.9; line-height:1.5;">(${optionParts.join(', ')})</span>`;
+  }
+
+  previewEl.innerHTML = html;
+  updateRollButtonState();
+}
 
     function updateRollButtonState() {
       const rollBtn = document.getElementById('roll-button');
@@ -628,7 +691,7 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
-  // === "Dice" Collapse Button (same position as d4) ===
+  // === Dice Collapse Button ("Dice" button) ===
   const collapseBtn = document.createElement('div');
   collapseBtn.className = 'dice-collapse-btn';
   collapseBtn.id = 'dice-collapse-btn';
@@ -636,19 +699,28 @@ function initCustomDicePanel() {
   const collapseGif = createDieGIF('d20');
   collapseBtn.appendChild(collapseGif);
 
+  const indicator = document.createElement('div');
+  indicator.className = 'collapse-indicator';
+  indicator.textContent = '↑';
+  collapseBtn.appendChild(indicator);
+
   const label = document.createElement('div');
   label.className = 'dice-collapse-label';
   label.textContent = 'Dice';
   collapseBtn.appendChild(label);
 
-  // Hover or click to expand
-  const expandPanel = () => panel.classList.remove('collapsed');
-  collapseBtn.onmouseenter = expandPanel;
-  collapseBtn.onclick = expandPanel;
+  // Hover to expand + click to toggle
+  collapseBtn.onmouseenter = () => {
+    panel.classList.remove('collapsed');
+  };
+
+  collapseBtn.onclick = () => {
+    panel.classList.toggle('collapsed');
+  };
 
   panel.appendChild(collapseBtn);
 
-  // === Individual dice buttons (d4, d6, etc.) ===
+  // === Individual dice buttons ===
   const types = ['d4','d6','d8','d10','d12','d20','d100'];
 
   types.forEach(type => {
@@ -657,6 +729,7 @@ function initCustomDicePanel() {
 
     const gifContainer = document.createElement('div');
     gifContainer.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center;';
+    
     const gif = createDieGIF(type);
     gifContainer.appendChild(gif);
     btn.appendChild(gifContainer);
@@ -694,7 +767,7 @@ function initCustomDicePanel() {
     panel.appendChild(btn);
   });
 
-  // Advanced Options Button
+  // Advanced Options Container
   const advancedContainer = document.createElement('div');
   advancedContainer.style.position = 'relative';
   advancedContainer.style.width = '56px';
@@ -703,7 +776,9 @@ function initCustomDicePanel() {
   const advancedBtn = document.createElement('button');
   advancedBtn.textContent = '- +';
   advancedBtn.className = 'small-control-btn';
-  advancedBtn.style.fontSize = '1.2rem';
+  advancedBtn.style.fontSize = '1.3rem';
+  advancedBtn.style.letterSpacing = '0px';
+  advancedBtn.title = 'Advanced Options';
   advancedBtn.onclick = showAdvancedOptionsModal;
   advancedContainer.appendChild(advancedBtn);
 
@@ -711,6 +786,7 @@ function initCustomDicePanel() {
   advResetX.className = 'reset-x';
   advResetX.textContent = '×';
   advResetX.title = 'Reset Advanced Options';
+  advResetX.style.zIndex = '60';
   advancedContainer.appendChild(advResetX);
 
   advResetX.onclick = (e) => {
@@ -722,6 +798,7 @@ function initCustomDicePanel() {
     disadvantage = false;
     updateAdvancedLabel();
     clearResults();
+    updatePreview();
   };
 
   panel.appendChild(advancedContainer);
@@ -730,6 +807,7 @@ function initCustomDicePanel() {
   const resetAll = document.createElement('button');
   resetAll.textContent = '⟲';
   resetAll.className = 'small-control-btn';
+  resetAll.title = 'Reset All Dice';
   resetAll.onclick = () => {
     Object.values(customDice).forEach(d => d.count = 0);
     modifier = 0;
@@ -744,6 +822,7 @@ function initCustomDicePanel() {
   };
   panel.appendChild(resetAll);
 
+  // Start expanded
   panel.classList.remove('collapsed');
 }
 
@@ -768,7 +847,7 @@ function updateAdvancedLabel() {
     advResetX.classList.remove('visible');
   }
 
-  // Update label text
+  // Update adv-label
   let oldLabel = container.querySelector('.adv-label');
   if (oldLabel) oldLabel.remove();
 
@@ -1112,6 +1191,7 @@ function changeModifier(delta) {
   modifier += delta;
   const el = document.getElementById('modal-modifier');
   if (el) el.textContent = (modifier >= 0 ? '+' : '') + modifier;
+    updatePreview();
 }
 
 function handleDropChange(checkbox, type) {
@@ -1131,6 +1211,7 @@ function handleDropChange(checkbox, type) {
       if (other) other.checked = false;
     }
   }
+    updatePreview();
 }
 
 function handleAdvantageChange(checkbox, isAdvantage) {
@@ -1149,6 +1230,7 @@ function handleAdvantageChange(checkbox, isAdvantage) {
       if (other) other.checked = false;
     }
   }
+  updatePreview();
 }
 
 function closeAdvancedModal() {
