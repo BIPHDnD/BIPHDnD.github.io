@@ -659,8 +659,9 @@ function applyCurrentHueToImage(img) {
 }
 
 // === Panel Toggle with Protection ===
-    function toggleDicePanel(expandOnly = false) {
+        function toggleDicePanel(expandOnly = false) {
       const panel = document.getElementById('custom-dice-panel');
+      const collapseBtn = document.getElementById('dice-collapse-btn');
       const wasCollapsed = panel.classList.contains('collapsed');
 
       if (expandOnly && !wasCollapsed) return;
@@ -668,8 +669,16 @@ function applyCurrentHueToImage(img) {
       panel.classList.toggle('collapsed');
 
       const now = Date.now();
-      if (!panel.classList.contains('collapsed')) {
-        lastPanelExpandTime = now;   // Record expansion time
+      const isExpanding = !panel.classList.contains('collapsed');
+
+      if (isExpanding) {
+        lastPanelExpandTime = now;
+
+        // Stop breathing animation permanently on first expansion
+        if (isFirstLoad && collapseBtn) {
+          collapseBtn.classList.remove('first-load');
+          isFirstLoad = false;           // Ensure it never comes back
+        }
       }
     }
 
@@ -761,25 +770,28 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
-  // === Collapse Button ===
-  const collapseBtn = document.createElement('div');
-  collapseBtn.className = 'dice-collapse-btn';
-  collapseBtn.id = 'dice-collapse-btn';
+        // === Collapse Button ===
+      const collapseBtn = document.createElement('div');
+      collapseBtn.className = 'dice-collapse-btn';
+      collapseBtn.id = 'dice-collapse-btn';
 
-  if (isFirstLoad) collapseBtn.classList.add('first-load');
+      // Breathing animation starts on load and continues until first expansion
+      if (isFirstLoad) {
+        collapseBtn.classList.add('first-load');
+      }
 
-  const collapseGif = createDieGIF('d20');
-  collapseBtn.appendChild(collapseGif);
+      const collapseGif = createDieGIF('d20');
+      collapseBtn.appendChild(collapseGif);
 
-  const indicator = document.createElement('div');
-  indicator.className = 'collapse-indicator';
-  indicator.textContent = '↑';
-  collapseBtn.appendChild(indicator);
+      const indicator = document.createElement('div');
+      indicator.className = 'collapse-indicator';
+      indicator.textContent = '↑';
+      collapseBtn.appendChild(indicator);
 
-  const label = document.createElement('div');
-  label.className = 'dice-collapse-label';
-  label.textContent = 'Dice';
-  collapseBtn.appendChild(label);
+      const label = document.createElement('div');
+      label.className = 'dice-collapse-label';
+      label.textContent = 'Dice';
+      collapseBtn.appendChild(label);
 
   const handleCollapseClick = (e) => {
     e.stopPropagation();
