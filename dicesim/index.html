@@ -298,6 +298,21 @@
       color: #ffffff;
     }
     
+        .adv-label {
+      position: absolute;
+      top: 50%;
+      left: -84px;
+      transform: translateY(-50%);
+      font-size: 10px;
+      font-weight: 600;
+      color: #e0f2fe;
+      text-align: right;
+      line-height: 1.25;
+      min-width: 82px;
+      white-space: pre-line;
+      pointer-events: none;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
 
     .modal {
       position: fixed;
@@ -321,10 +336,10 @@
       position: relative;
     }
 
-    .history-entry {
+        .history-entry {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       padding: 14px 0;
       border-bottom: 1px solid var(--border);
       gap: 16px;
@@ -334,15 +349,16 @@
     .history-title {
       color: var(--accent);
       font-size: 1rem;
-      flex: 1 1 280px;
-      text-align: center;
+      flex: 1 1 260px;
+      text-align: left;           /* Left justified */
+      min-width: 0;
     }
 
     .history-total {
       color: var(--text);
       font-weight: 700;
       font-size: 1.05rem;
-      text-align: center;
+      text-align: center;         /* Text centered */
       flex: 1 1 320px;
       max-width: 100%;
       word-break: break-word;
@@ -351,9 +367,24 @@
     .history-timestamp {
       color: var(--text-muted);
       font-size: 0.95rem;
-      text-align: center;
-      flex: 1 1 100px;
+      text-align: right;
+      flex: 0 0 90px;
       white-space: nowrap;
+    }
+
+    /* Small screen fallback */
+    @media (max-width: 520px) {
+      .history-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .history-title,
+      .history-total,
+      .history-timestamp {
+        text-align: left;
+        width: 100%;
+      }
     }
 
     /* Hamburger Menu */
@@ -422,21 +453,6 @@
       border-color: var(--accent);
     }
 
-    /* Small screen optimization for history */
-    @media (max-width: 520px) {
-      .history-entry {
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        text-align: center;
-      }
-      .history-title,
-      .history-total,
-      .history-timestamp {
-        text-align: center;
-        width: 100%;
-      }
-    }
   </style>
 </head>
 <body>
@@ -463,6 +479,11 @@
       d10: { count: 0 }, d12: { count: 0 }, d20: { count: 0 }, d100: { count: 0 }
     };
 
+    let modifier = 0;
+    let dropLowest = false;
+    let dropHighest = false;
+    let advantage = false;
+    let disadvantage = false;
     let rollHistory = [];
     const MAX_HISTORY = 30;
     const MAX_PER_DIE = 10;
@@ -480,16 +501,27 @@
       audio.play().catch(e => console.log("Sound play failed:", e));
     }
 
-    function createDieGIF(type) {
-      const img = document.createElement('img');
-      img.src = `${type}loop.gif`;
-      img.alt = type.toUpperCase();
-      img.style.width = '100%';
-      img.style.height = '100%';
-      img.style.objectFit = 'contain';
-      img.style.imageRendering = 'crisp-edges';
-      return img;
-    }
+function createDieGIF(type) {
+  const img = document.createElement('img');
+  img.src = `${type}loop.gif`;
+  img.alt = type.toUpperCase();
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'contain';
+  img.style.imageRendering = 'crisp-edges';
+  
+  // Apply current theme hue filter
+  applyCurrentHueToImage(img);
+  
+  return img;
+}
+
+function applyCurrentHueToImage(img) {
+  const theme = themes[currentTheme];
+  if (theme && theme.hue !== undefined) {
+    img.style.filter = `hue-rotate(${theme.hue}deg) saturate(1.25) brightness(1.12)`;
+  }
+}
 
     function updatePreview() {
       const parts = [];
@@ -539,11 +571,12 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
-  ['d4','d6','d8','d10','d12','d20','d100'].forEach(type => {
+  const types = ['d4','d6','d8','d10','d12','d20','d100'];
+
+  types.forEach(type => {
     const btn = document.createElement('div');
     btn.className = 'custom-die-btn';
 
-    // GIF container
     const gifContainer = document.createElement('div');
     gifContainer.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center;';
     
@@ -551,179 +584,350 @@ function initCustomDicePanel() {
     gifContainer.appendChild(gif);
     btn.appendChild(gifContainer);
 
-    // Label
     const label = document.createElement('div');
     label.className = 'die-label';
     label.textContent = type.toUpperCase();
     btn.appendChild(label);
 
-    // Multiplier
     const mult = document.createElement('div');
     mult.className = 'multiplier';
     btn.appendChild(mult);
 
-    // Reset X button
     const resetX = document.createElement('div');
     resetX.className = 'reset-x';
     resetX.textContent = '×';
-    resetX.title = `Reset ${type.toUpperCase()}`;   // tooltip
+    resetX.title = `Reset ${type.toUpperCase()}`;
     btn.appendChild(resetX);
 
-    // Main button click = increase count
     btn.onclick = (e) => {
-      // If user clicked the reset-x, don't trigger main button
       if (e.target.classList.contains('reset-x')) return;
-
       customDice[type].count = (customDice[type].count + 1) % (MAX_PER_DIE + 1) || 1;
       updateCustomDiceUI();
       updatePreview();
     };
 
-    // Reset-X click handler
     resetX.onclick = (e) => {
-      e.stopImmediatePropagation();        // Prevent triggering the parent btn click
+      e.stopImmediatePropagation();
       customDice[type].count = 0;
       updateCustomDiceUI();
       updatePreview();
-      clearResults();                      // Optional: clear current results when resetting a die
+      clearResults();
     };
 
     panel.appendChild(btn);
   });
 
-  // Global Reset button
+    // Advanced Options Container
+  const advancedContainer = document.createElement('div');
+  advancedContainer.style.position = 'relative';
+  advancedContainer.style.width = '56px';
+  advancedContainer.style.height = '56px';
+
+  const advancedBtn = document.createElement('button');
+  advancedBtn.textContent = '- +';
+  advancedBtn.className = 'small-control-btn';
+  advancedBtn.style.fontSize = '1.2rem';
+  advancedBtn.style.letterSpacing = '1px';
+  advancedBtn.title = 'Advanced Options';
+  advancedBtn.onclick = showAdvancedOptionsModal;
+  advancedContainer.appendChild(advancedBtn);
+
+  // Reset-X for Advanced Options - only visible when active
+  const advResetX = document.createElement('div');
+  advResetX.className = 'reset-x';
+  advResetX.textContent = '×';
+  advResetX.title = 'Reset Advanced Options';
+  advResetX.style.zIndex = '60';
+  advancedContainer.appendChild(advResetX);
+
+  advResetX.onclick = (e) => {
+    e.stopImmediatePropagation();
+    modifier = 0;
+    dropLowest = false;
+    dropHighest = false;
+    advantage = false;
+    disadvantage = false;
+    updateAdvancedLabel();
+    clearResults();
+  };
+
+  panel.appendChild(advancedContainer);
+
+  // Global Reset All
   const resetAll = document.createElement('button');
   resetAll.textContent = '⟲';
   resetAll.className = 'small-control-btn';
   resetAll.title = 'Reset All Dice';
   resetAll.onclick = () => {
     Object.values(customDice).forEach(d => d.count = 0);
+    modifier = 0;
+    dropLowest = false;
+    dropHighest = false;
+    advantage = false;
+    disadvantage = false;
     clearResults();
     updateCustomDiceUI();
     updatePreview();
+    updateAdvancedLabel();
   };
   panel.appendChild(resetAll);
 }
 
-    function clearResults() {
-      const container = document.getElementById('attack-dice');
-      container.innerHTML = '';
-      document.getElementById('result-summary').innerHTML = '';
-      document.getElementById('dice-results').style.display = 'none';
-    }
+function updateAdvancedLabel() {
+  const container = document.querySelector('.small-control-btn[title="Advanced Options"]')?.parentElement;
+  if (!container) return;
 
-    function performCustomRoll() {
-      const hasDice = Object.values(customDice).some(d => d.count > 0);
-      if (!hasDice) {
-        flashPreviewText();
-        return;
-      }
+  const advResetX = container.querySelector('.reset-x');
+  if (!advResetX) return;
 
-      playRandomRollSound();
-      clearResults();
+  const hasActiveModifiers = 
+    modifier !== 0 || 
+    dropLowest || 
+    dropHighest || 
+    advantage || 
+    disadvantage;
 
-      const parts = [];
-      Object.entries(customDice).forEach(([type, data]) => {
-        if (data.count > 0) parts.push(`${data.count}${type}`);
-      });
-      const expression = parts.join(' + ');
+  // Show/hide reset-x
+  if (hasActiveModifiers) {
+    advResetX.classList.add('visible');
+  } else {
+    advResetX.classList.remove('visible');
+  }
 
-      const resultsEl = document.getElementById('dice-results');
-      resultsEl.style.display = 'block';
+  // Update label text
+  let oldLabel = container.querySelector('.adv-label');
+  if (oldLabel) oldLabel.remove();
 
-      const container = document.getElementById('attack-dice');
-      const diceElements = [];
+  const parts = [];
+  if (modifier !== 0) parts.push(modifier > 0 ? `+${modifier}` : `${modifier}`);
+  if (dropLowest) parts.push("drop lowest");
+  if (dropHighest) parts.push("drop highest");
+  if (advantage) parts.push("advantage");
+  if (disadvantage) parts.push("disadvantage");
 
-      Object.entries(customDice).forEach(([type, {count}]) => {
-        if (count === 0) return;
-        for (let i = 0; i < count; i++) {
-          const mini = document.createElement('div');
-          mini.className = 'die-mini';
+  if (parts.length > 0) {
+    const label = document.createElement('div');
+    label.className = 'adv-label';
+    label.innerHTML = parts.map(p => `(${p})`).join('<br>');
+    container.appendChild(label);
+  }
+}
 
-          const gif = createDieGIF(type);
-          mini.appendChild(gif);
+function clearResults() {
+  const container = document.getElementById('attack-dice');
+  container.innerHTML = '';
+  document.getElementById('result-summary').innerHTML = '';
+  document.getElementById('dice-results').style.display = 'none';
+  document.body.classList.remove('results-visible');
+}
 
-          const valEl = document.createElement('div');
-          valEl.className = 'result-number';
-          valEl.textContent = '?';
-          mini.appendChild(valEl);
-
-          container.appendChild(mini);
-          diceElements.push({mini, valEl, type});
-        }
-      });
-
-      let frame = 0;
-      const cycling = setInterval(() => {
-        frame++;
-        diceElements.forEach(({valEl, type}) => {
-          const sides = parseInt(type.slice(1));
-          valEl.textContent = Math.floor(Math.random() * sides) + 1;
-        });
-
-        if (frame > 28 + Math.random() * 18) {
-          clearInterval(cycling);
-
-          let sum = 0;
-          const individualRolls = [];
-
-          diceElements.forEach(({valEl, type, mini}) => {
-            const sides = parseInt(type.slice(1));
-            const v = Math.floor(Math.random() * sides) + 1;
-
-            valEl.textContent = v;
-            sum += v;
-            individualRolls.push(v);
-
-            if (type === 'd20') {
-              mini.classList.remove('critical-fail', 'critical-hit');
-              valEl.classList.remove('critical-fail', 'critical-hit');
-              if (v === 1) {
-                mini.classList.add('critical-fail');
-                valEl.classList.add('critical-fail');
-              } else if (v === 20) {
-                mini.classList.add('critical-hit');
-                valEl.classList.add('critical-hit');
-              }
-            }
-          });
-
-          document.getElementById('result-summary').innerHTML = 
-            `${individualRolls.join(' + ')} = <span style="color:#ffffff;">${sum}</span>`;
-
-          rollHistory.unshift({ 
-            expression, 
-            rolls: individualRolls, 
-            total: sum, 
-            timestamp: new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12:true}) 
-          });
-          if (rollHistory.length > MAX_HISTORY) rollHistory.pop();
-        }
-      }, 55);
-
-      resultsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-function showHistoryModal() {
-  if (!rollHistory.length) {
-    alert("No rolls yet.");
+function performCustomRoll() {
+  const hasDice = Object.values(customDice).some(d => d.count > 0);
+  if (!hasDice) {
+    flashPreviewText();
     return;
   }
 
-  let html = '';
-  rollHistory.forEach(e => {
-    const diceList = e.expression.split(' + ').join(', ');
+  playRandomRollSound();
+  clearResults();
 
-    const rollsWithPlus = e.rolls.join(' + ');
-    const totalLine = `${rollsWithPlus} = <span style="color:#67e8f9;">${e.total}</span>`;
-
-    html += `
-      <div class="history-entry">
-        <div class="history-title">${diceList}</div>
-        <div class="history-total">${totalLine}</div>
-        <div class="history-timestamp">${e.timestamp}</div>
-      </div>`;
+  const parts = [];
+  Object.entries(customDice).forEach(([type, data]) => {
+    if (data.count > 0) parts.push(`${data.count}${type}`);
   });
+  const expression = parts.join(' + ');
+
+  const resultsEl = document.getElementById('dice-results');
+  resultsEl.style.display = 'block';
+
+  const container = document.getElementById('attack-dice');
+  const diceElements = [];
+
+  // Create initial dice
+  Object.entries(customDice).forEach(([type, {count}]) => {
+    if (count === 0) return;
+    for (let i = 0; i < count; i++) {
+      const mini = document.createElement('div');
+      mini.className = 'die-mini';
+
+      const gif = createDieGIF(type);
+      mini.appendChild(gif);
+
+      const valEl = document.createElement('div');
+      valEl.className = 'result-number';
+      valEl.textContent = '?';
+      mini.appendChild(valEl);
+
+      container.appendChild(mini);
+      diceElements.push({ mini, valEl, type });
+    }
+  });
+
+  // === Add extra d20 immediately for Advantage / Disadvantage ===
+  let extraD20Added = false;
+  if ((advantage || disadvantage) && 
+      diceElements.filter(d => d.type === 'd20').length === 1) {
+    
+    const extraMini = document.createElement('div');
+    extraMini.className = 'die-mini';
+
+    const extraGif = createDieGIF('d20');
+    extraMini.appendChild(extraGif);
+
+    const extraValEl = document.createElement('div');
+    extraValEl.className = 'result-number';
+    extraValEl.textContent = '?';
+    extraMini.appendChild(extraValEl);
+
+    container.appendChild(extraMini);
+    diceElements.push({ mini: extraMini, valEl: extraValEl, type: 'd20' });
+    extraD20Added = true;
+  }
+
+  let frame = 0;
+  const cycling = setInterval(() => {
+    frame++;
+    diceElements.forEach(({valEl, type}) => {
+      const sides = parseInt(type.slice(1));
+      valEl.textContent = Math.floor(Math.random() * sides) + 1;
+    });
+
+    if (frame > 28 + Math.random() * 18) {
+      clearInterval(cycling);
+
+      let sum = 0;
+      const displayedRolls = [];
+      const rollData = [];
+
+      // Record final rolls
+      diceElements.forEach(({valEl, type, mini}) => {
+        const sides = parseInt(type.slice(1));
+        const v = Math.floor(Math.random() * sides) + 1;
+        valEl.textContent = v;
+        rollData.push({ value: v, mini: mini, valEl: valEl, type });
+      });
+
+      const toDrop = new Set();
+
+      // === ADVANTAGE / DISADVANTAGE ===
+      if ((advantage || disadvantage) && rollData.some(r => r.type === 'd20')) {
+        const d20s = rollData
+          .map((r, i) => r.type === 'd20' ? {index: i, value: r.value} : null)
+          .filter(Boolean);
+
+        if (advantage) {
+          // Drop the lowest d20
+          const lowest = d20s.reduce((a, b) => a.value < b.value ? a : b);
+          toDrop.add(lowest.index);
+        } else if (disadvantage) {
+          // Drop the highest d20
+          const highest = d20s.reduce((a, b) => a.value > b.value ? a : b);
+          toDrop.add(highest.index);
+        }
+      }
+
+      // === MANUAL DROP LOWEST / HIGHEST ===
+      if (dropLowest || dropHighest) {
+        if (dropLowest) {
+          let minVal = Infinity;
+          let dropIdx = -1;
+          rollData.forEach((r, i) => {
+            if (!toDrop.has(i) && r.value < minVal) {
+              minVal = r.value;
+              dropIdx = i;
+            }
+          });
+          if (dropIdx !== -1) toDrop.add(dropIdx);
+        }
+        if (dropHighest) {
+          let maxVal = -Infinity;
+          let dropIdx = -1;
+          rollData.forEach((r, i) => {
+            if (!toDrop.has(i) && r.value > maxVal) {
+              maxVal = r.value;
+              dropIdx = i;
+            }
+          });
+          if (dropIdx !== -1) toDrop.add(dropIdx);
+        }
+      }
+
+      // Apply visual drop effects
+      toDrop.forEach(idx => {
+        const dropped = rollData[idx];
+        if (dropped) {
+          dropped.mini.style.opacity = '0.25';
+          dropped.valEl.style.fontWeight = '400';
+          dropped.valEl.style.textDecoration = 'line-through';
+        }
+      });
+
+      // Build displayed rolls in original order
+      rollData.forEach((roll, index) => {
+        if (!toDrop.has(index)) {
+          displayedRolls.push(roll.value);
+          sum += roll.value;
+        }
+      });
+
+      // Add modifier
+      sum += modifier;
+
+      // Result text: only final number is bold
+      let resultText = displayedRolls.join(' + ');
+      if (modifier !== 0) {
+        resultText += ` (${modifier > 0 ? '+' : ''}${modifier})`;
+      }
+      resultText += ` = <span style="color: var(--accent); font-weight: 700;">${sum}</span>`;
+
+      document.getElementById('result-summary').innerHTML = resultText;
+
+      // Scroll to bottom
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 80);
+
+      rollHistory.unshift({
+        expression: expression,
+        rolls: displayedRolls,
+        modifier: modifier,
+        dropped: toDrop.size > 0,
+        total: sum,
+        timestamp: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+      });
+      if (rollHistory.length > MAX_HISTORY) rollHistory.pop();
+    }
+  }, 55);
+
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function showHistoryModal() {
+  let html = '';
+
+  if (rollHistory.length === 0) {
+    html = `<div style="text-align:center; padding:40px 20px; color:#64748b;">
+              No rolls yet.<br><br>
+              <span style="font-size:0.95rem;">Roll some dice to see history here.</span>
+            </div>`;
+  } else {
+    rollHistory.forEach(e => {
+      const diceList = e.expression.split(' + ').join(', ');
+      const rollsWithPlus = e.rolls.join(' + ');
+      let totalLine = `${rollsWithPlus}`;
+      if (e.modifier !== 0) {
+        totalLine += ` (${e.modifier > 0 ? '+' : ''}${e.modifier})`;
+      }
+      totalLine += ` = <span style="color:#67e8f9;">${e.total}</span>`;
+
+      html += `
+        <div class="history-entry">
+          <div class="history-title">${diceList}</div>
+          <div class="history-total">${totalLine}</div>
+          <div class="history-timestamp">${e.timestamp}</div>
+        </div>`;
+    });
+  }
 
   const modal = document.createElement('div');
   modal.className = 'modal';
@@ -750,8 +954,138 @@ function showHistoryModal() {
   document.addEventListener('keydown', escHandler);
 }
 
+function showAdvancedOptionsModal() {
+  const html = `
+    <div style="display: flex; flex-direction: column; gap: 20px; font-size: 1.05rem;">
+
+      <!-- Modifier -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
+        <button onclick="changeModifier(-1)" style="width:50px;height:50px;font-size:1.6rem;background:#334155;border:none;border-radius:10px;color:white;cursor:pointer;">−</button>
+        <span id="modal-modifier" style="font-size:2rem; min-width:70px; text-align:center; font-weight:700;">${modifier >= 0 ? '+' : ''}${modifier}</span>
+        <button onclick="changeModifier(1)" style="width:50px;height:50px;font-size:1.6rem;background:#334155;border:none;border-radius:10px;color:white;cursor:pointer;">+</button>
+      </div>
+
+      <!-- Drop Options (mutually exclusive) -->
+      <div>
+        <div style="margin-bottom: 8px; color: #94a3b8; font-size: 0.95rem;">Drop</div>
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="modal-drop-lowest" ${dropLowest ? 'checked' : ''} 
+                 onchange="handleDropChange(this, 'lowest')">
+          Drop lowest
+        </label>
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="modal-drop-highest" ${dropHighest ? 'checked' : ''} 
+                 onchange="handleDropChange(this, 'highest')">
+          Drop highest
+        </label>
+      </div>
+
+      <!-- Advantage / Disadvantage (mutually exclusive) -->
+      <div>
+        <div style="margin-bottom: 8px; color: #94a3b8; font-size: 0.95rem;">d20 Special</div>
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="modal-advantage" ${advantage ? 'checked' : ''} 
+                 onchange="handleAdvantageChange(this, true)">
+          Advantage (drop lowest d20)
+        </label>
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="modal-disadvantage" ${disadvantage ? 'checked' : ''} 
+                 onchange="handleAdvantageChange(this, false)">
+          Disadvantage (drop highest d20)
+        </label>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 28px; text-align:center;">
+      <button onclick="closeAdvancedModal()" 
+              style="padding:10px 36px; font-size:1.1rem; background:var(--accent); color:#0a0f1c; border:none; border-radius:9999px; cursor:pointer; font-weight:700;">
+        Done
+      </button>
+    </div>
+  `;
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:380px;">
+      <button id="modal-close" style="position:absolute;top:12px;right:16px;font-size:1.8rem;color:#94a3b8;background:none;border:none;cursor:pointer;">×</button>
+      <h3 style="margin:0 0 20px;color:var(--accent);text-align:center;">Modifiers</h3>
+      ${html}
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeModal = () => modal.remove();
+
+  modal.querySelector('#modal-close').onclick = closeModal;
+
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+
+  modal.addEventListener('click', e => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+function changeModifier(delta) {
+  modifier += delta;
+  const el = document.getElementById('modal-modifier');
+  if (el) el.textContent = (modifier >= 0 ? '+' : '') + modifier;
+}
+
+function handleDropChange(checkbox, type) {
+  if (type === 'lowest') {
+    dropLowest = checkbox.checked;
+    if (checkbox.checked) {
+      dropHighest = false;
+      // Uncheck the other checkbox visually
+      const other = document.getElementById('modal-drop-highest');
+      if (other) other.checked = false;
+    }
+  } else {
+    dropHighest = checkbox.checked;
+    if (checkbox.checked) {
+      dropLowest = false;
+      const other = document.getElementById('modal-drop-lowest');
+      if (other) other.checked = false;
+    }
+  }
+}
+
+function handleAdvantageChange(checkbox, isAdvantage) {
+  if (isAdvantage) {
+    advantage = checkbox.checked;
+    if (checkbox.checked) {
+      disadvantage = false;
+      const other = document.getElementById('modal-disadvantage');
+      if (other) other.checked = false;
+    }
+  } else {
+    disadvantage = checkbox.checked;
+    if (checkbox.checked) {
+      advantage = false;
+      const other = document.getElementById('modal-advantage');
+      if (other) other.checked = false;
+    }
+  }
+}
+
+function closeAdvancedModal() {
+  document.querySelectorAll('.modal').forEach(m => m.remove());
+  updateAdvancedLabel();
+}
+
+
         function init() {
       initCustomDicePanel();
+      updateAdvancedLabel();
       updatePreview();
 
       // Setup hamburger menu
@@ -834,39 +1168,43 @@ function showHistoryModal() {
     let currentTheme = 'default';
 
     function applyTheme(themeKey) {
-      const theme = themes[themeKey];
-      if (!theme) return;
+  const theme = themes[themeKey];
+  if (!theme) return;
 
-      currentTheme = themeKey;
+  currentTheme = themeKey;
 
-      // Update root CSS variables for consistent theming
-      document.documentElement.style.setProperty('--accent', theme.accent);
-      document.documentElement.style.setProperty('--bg', theme.bg);
-      document.documentElement.style.setProperty('--panel', theme.panel);
-      document.documentElement.style.setProperty('--border', theme.border);
-      document.documentElement.style.setProperty('--text', theme.text);
+  // Update CSS variables
+  document.documentElement.style.setProperty('--accent', theme.accent);
+  document.documentElement.style.setProperty('--bg', theme.bg);
+  document.documentElement.style.setProperty('--panel', theme.panel);
+  document.documentElement.style.setProperty('--border', theme.border);
+  document.documentElement.style.setProperty('--text', theme.text);
 
-      // Apply to body and major elements
-      document.body.style.backgroundColor = theme.bg;
+  document.body.style.backgroundColor = theme.bg;
 
-      // Hue filter + slight saturation/brightness boost for GIFs
-      const allGifs = document.querySelectorAll('img[src$="loop.gif"]');
-      allGifs.forEach(img => {
-        img.style.filter = `hue-rotate(${theme.hue}deg) saturate(1.25) brightness(1.12)`;
-      });
+  // Apply hue filter to ALL GIFs on the page (both panel and results)
+  const allGifs = document.querySelectorAll('img[src$="loop.gif"]');
+  allGifs.forEach(img => {
+    img.style.filter = `hue-rotate(${theme.hue}deg) saturate(1.25) brightness(1.12)`;
+  });
 
-      // Update active menu item
-      document.querySelectorAll('.theme-option').forEach(opt => {
-        opt.classList.toggle('active', opt.dataset.theme === themeKey);
-      });
+  // Update active menu item
+  document.querySelectorAll('.theme-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.theme === themeKey);
+  });
 
-      // Flash preview text
-      const preview = document.getElementById('preview-text');
-      if (preview) {
-        preview.style.color = theme.preview;
-        setTimeout(() => preview.style.color = theme.accent, 600);
-      }
-    }
+  // Flash preview text
+  const preview = document.getElementById('preview-text');
+  if (preview) {
+    preview.style.color = theme.preview;
+    setTimeout(() => {
+      preview.style.color = theme.accent;
+    }, 600);
+  }
+
+  // Re-apply to any currently visible result dice (in case results are shown)
+  updateAdvancedLabel();
+}
 
     function createThemeMenu() {
       const menu = document.createElement('div');
