@@ -88,7 +88,7 @@
     }
 
        /* Dice Button */
-    .dice-collapse-btn {
+        .dice-collapse-btn {
       width: 56px;
       height: 56px;
       border-radius: 9999px;
@@ -101,10 +101,15 @@
       transition: border-color 0.3s ease;
     }
 
-    /* Pulsing border when collapsed */
-    #custom-dice-panel.collapsed .dice-collapse-btn {
+    /* First-load only animation */
+    .dice-collapse-btn.first-load {
       animation: diceButtonBreath 0.8s infinite ease-in-out,
                  diceButtonPulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes diceButtonBreath {
+      0%, 100% { transform: scale(1.0); }
+      50%      { transform: scale(1.03); }
     }
 
     @keyframes diceButtonPulse {
@@ -114,7 +119,7 @@
 
     .dice-collapse-btn:hover {
       border-color: var(--accent);
-      animation-play-state: paused;   /* pause both animations while hovering */
+      animation-play-state: paused;
     }
 
     /* Dark overlay when expanded */
@@ -589,6 +594,8 @@
     let advantage = false;
     let disadvantage = false;
     let rollHistory = [];
+    let isFirstLoad = true;        // For breathing animation
+    let lastPanelExpandTime = 0;   // For 250ms protection
     const MAX_HISTORY = 30;
     const MAX_PER_DIE = 10;
 
@@ -711,10 +718,13 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
-      // === Dice Collapse Button ===
+  // === Dice Collapse Button ===
   const collapseBtn = document.createElement('div');
   collapseBtn.className = 'dice-collapse-btn';
   collapseBtn.id = 'dice-collapse-btn';
+
+  // Add first-load class for breathing animation
+  collapseBtn.classList.add('first-load');
 
   const collapseGif = createDieGIF('d20');
   collapseBtn.appendChild(collapseGif);
@@ -729,31 +739,31 @@ function initCustomDicePanel() {
   label.textContent = 'Dice';
   collapseBtn.appendChild(label);
 
-  // Timer for grace period
+  // Timer for 250ms protection
   let lastExpandTime = 0;
 
-  // Hover / Touch start → expand
-  const expandPanel = () => {
+  // Hover / Touch expands
+  collapseBtn.onmouseenter = () => {
     lastExpandTime = Date.now();
     panel.classList.remove('collapsed');
   };
 
-  collapseBtn.onmouseenter = expandPanel;
-  collapseBtn.ontouchstart = expandPanel;   // Better mobile support
+  collapseBtn.ontouchstart = () => {
+    lastExpandTime = Date.now();
+    panel.classList.remove('collapsed');
+  };
 
-  // Click / Tap with grace period protection
+  // Click with 250ms protection
   collapseBtn.onclick = (e) => {
     e.stopPropagation();
 
     const now = Date.now();
-    const recentlyExpanded = (now - lastExpandTime) < 250;   // 250ms grace period
+    const recentlyExpanded = (now - lastExpandTime) < 250;
 
     if (recentlyExpanded) {
-      // Prevent accidental dice selection right after opening
-      return;
+      return; // Prevent accidental dice selection
     }
 
-    // Normal toggle
     panel.classList.toggle('collapsed');
   };
 
@@ -1299,7 +1309,7 @@ function closeAdvancedModal() {
 }
 
 
-        function init() {
+function init() {
   initCustomDicePanel();
   updateAdvancedLabel();
   updatePreview();
