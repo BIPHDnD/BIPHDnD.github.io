@@ -736,105 +736,112 @@ function isInProtectionWindow() {
     }
 
 function initCustomDicePanel() {
-      const panel = document.getElementById('custom-dice-panel');
-      panel.innerHTML = '';
+  const panel = document.getElementById('custom-dice-panel');
+  panel.innerHTML = '';
 
-      // === Collapse Button ===
-      const collapseBtn = document.createElement('div');
-      collapseBtn.className = 'dice-collapse-btn';
-      collapseBtn.id = 'dice-collapse-btn';
+  // === Collapse Button ===
+  const collapseBtn = document.createElement('div');
+  collapseBtn.className = 'dice-collapse-btn';
+  collapseBtn.id = 'dice-collapse-btn';
 
-      if (isFirstLoad) collapseBtn.classList.add('first-load');
+  if (isFirstLoad) collapseBtn.classList.add('first-load');
 
-      const collapseGif = createDieGIF('d20');
-      collapseBtn.appendChild(collapseGif);
+  const collapseGif = createDieGIF('d20');
+  collapseBtn.appendChild(collapseGif);
 
-      const indicator = document.createElement('div');
-      indicator.className = 'collapse-indicator';
-      indicator.textContent = '↑';
-      collapseBtn.appendChild(indicator);
+  const indicator = document.createElement('div');
+  indicator.className = 'collapse-indicator';
+  indicator.textContent = '↑';
+  collapseBtn.appendChild(indicator);
 
-      const label = document.createElement('div');
-      label.className = 'dice-collapse-label';
-      label.textContent = 'Dice';
-      collapseBtn.appendChild(label);
+  const label = document.createElement('div');
+  label.className = 'dice-collapse-label';
+  label.textContent = 'Dice';
+  collapseBtn.appendChild(label);
 
-      // Unified click/touch handler
-      const handleCollapseClick = (e) => {
-        e.stopPropagation();
-        if (isInProtectionWindow()) return; // Prevent immediate collapse after expand
-        toggleDicePanel();
-      };
+  const handleCollapseClick = (e) => {
+    e.stopPropagation();
+    if (isInProtectionWindow()) return;
+    toggleDicePanel();
+  };
 
-      collapseBtn.addEventListener('click', handleCollapseClick);
-      collapseBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        handleCollapseClick(e);
-      });
+  collapseBtn.addEventListener('click', handleCollapseClick);
+  collapseBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    handleCollapseClick(e);
+  });
 
-      // Hover to expand (desktop only)
-      if (!('ontouchstart' in window)) {
-        collapseBtn.addEventListener('mouseenter', () => {
-          toggleDicePanel(true);
-        });
+  if (!('ontouchstart' in window)) {
+    collapseBtn.addEventListener('mouseenter', () => toggleDicePanel(true));
+  }
+
+  panel.appendChild(collapseBtn);
+
+  // === Individual Dice Buttons ===
+  const types = ['d4','d6','d8','d10','d12','d20','d100'];
+
+  types.forEach(type => {
+    const btn = document.createElement('div');
+    btn.className = 'custom-die-btn';
+
+    const gifContainer = document.createElement('div');
+    gifContainer.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center;';
+    const gif = createDieGIF(type);
+    gifContainer.appendChild(gif);
+    btn.appendChild(gifContainer);
+
+    const dieLabel = document.createElement('div');
+    dieLabel.className = 'die-label';
+    dieLabel.textContent = type.toUpperCase();
+    btn.appendChild(dieLabel);
+
+    const mult = document.createElement('div');
+    mult.className = 'multiplier';
+    btn.appendChild(mult);
+
+    // === Reset X Button (Fixed for Mobile) ===
+    const resetX = document.createElement('div');
+    resetX.className = 'reset-x';
+    resetX.textContent = '×';
+    resetX.title = `Reset ${type.toUpperCase()}`;
+
+    const handleReset = (e) => {
+      e.stopImmediatePropagation();
+      e.preventDefault();                    // Critical for mobile
+      customDice[type].count = 0;
+      updateCustomDiceUI();
+      updatePreview();
+      clearResults();
+    };
+
+    resetX.addEventListener('click', handleReset);
+    resetX.addEventListener('touchend', handleReset);   // ← This was missing
+
+    btn.appendChild(resetX);
+
+    // === Dice Button Click Handler ===
+    const handleDieClick = (e) => {
+      // Skip if user tapped the reset-x
+      if (e.target.classList.contains('reset-x') || 
+          e.target.closest('.reset-x')) {
+        return;
       }
 
-      panel.appendChild(collapseBtn);
+      if (isInProtectionWindow()) return;
 
-      // === Individual Dice Buttons ===
-      const types = ['d4','d6','d8','d10','d12','d20','d100'];
+      customDice[type].count = (customDice[type].count + 1) % (MAX_PER_DIE + 1) || 1;
+      updateCustomDiceUI();
+      updatePreview();
+    };
 
-      types.forEach(type => {
-        const btn = document.createElement('div');
-        btn.className = 'custom-die-btn';
+    btn.addEventListener('click', handleDieClick);
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handleDieClick(e);
+    });
 
-        const gifContainer = document.createElement('div');
-        gifContainer.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center;';
-        const gif = createDieGIF(type);
-        gifContainer.appendChild(gif);
-        btn.appendChild(gifContainer);
-
-        const dieLabel = document.createElement('div');
-        dieLabel.className = 'die-label';
-        dieLabel.textContent = type.toUpperCase();
-        btn.appendChild(dieLabel);
-
-        const mult = document.createElement('div');
-        mult.className = 'multiplier';
-        btn.appendChild(mult);
-
-        const resetX = document.createElement('div');
-        resetX.className = 'reset-x';
-        resetX.textContent = '×';
-        resetX.title = `Reset ${type.toUpperCase()}`;
-        btn.appendChild(resetX);
-
-        // Dice selection with protection
-        const handleDieClick = (e) => {
-          if (e.target.classList.contains('reset-x')) return;
-          if (isInProtectionWindow()) return; // ← 500ms protection
-
-          customDice[type].count = (customDice[type].count + 1) % (MAX_PER_DIE + 1) || 1;
-          updateCustomDiceUI();
-          updatePreview();
-        };
-
-        btn.addEventListener('click', handleDieClick);
-        btn.addEventListener('touchend', (e) => {
-          e.preventDefault();
-          handleDieClick(e);
-        });
-
-        resetX.addEventListener('click', (e) => {
-          e.stopImmediatePropagation();
-          customDice[type].count = 0;
-          updateCustomDiceUI();
-          updatePreview();
-          clearResults();
-        });
-
-        panel.appendChild(btn);
-      });
+    panel.appendChild(btn);
+  });
 
   // === Advanced Options Container ===
   const advancedContainer = document.createElement('div');
@@ -1348,14 +1355,17 @@ function init() {
     }
   });
 
-    // Click/tap anywhere on background → collapse panel
+// Click anywhere on background → collapse panel (but ignore modals)
 document.addEventListener('click', (e) => {
   const panel = document.getElementById('custom-dice-panel');
-  const collapseBtn = document.getElementById('dice-collapse-btn');
+  
+  // Do NOT collapse if any modal is open
+  if (document.querySelector('.modal')) {
+    return;
+  }
 
   if (!panel.classList.contains('collapsed') &&
-      !panel.contains(e.target) &&
-      !collapseBtn.contains(e.target)) {
+      !panel.contains(e.target)) {
     panel.classList.add('collapsed');
   }
 });
