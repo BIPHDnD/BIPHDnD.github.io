@@ -742,6 +742,14 @@ function initCustomDicePanel() {
   // Timer for 250ms protection
   let lastExpandTime = 0;
 
+  const expandPanel = () => {
+    lastExpandTime = Date.now();
+    panel.classList.remove('collapsed');
+  };
+
+  collapseBtn.onmouseenter = expandPanel;
+  collapseBtn.ontouchstart = expandPanel;   // Better mobile support
+
   // Hover / Touch expands
   collapseBtn.onmouseenter = () => {
     lastExpandTime = Date.now();
