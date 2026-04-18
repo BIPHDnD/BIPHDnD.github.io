@@ -247,16 +247,20 @@
       justify-content: center;
     }
 
-    .die-mini {
+ .die-mini {
       position: relative;
       width: 120px;
       height: 150px;
-      background: #000000;            
+      background: #000000;
+      border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       transition: all 0.2s ease;
-      border: 1px solid var(--border);
+      user-select: none;           /* Prevent text selection */
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
 
     .die-mini:hover {
@@ -277,11 +281,13 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 1.1rem;
-      font-weight: 700;
+      font-weight: 400;
       color: #e0f2fe;
       text-shadow: 0 2px 4px rgba(0,0,0,0.8);
       transition: color 0.3s ease;
-      /* color: var(--text); */
+      pointer-events: none;        /* Prevent text cursor */
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .result-number.critical-fail { color: #ef4444; }
@@ -294,8 +300,12 @@
       margin-top: 20px;
       text-align: center;
       font-size: 1.45rem;
-      font-weight: 700;
+      font-weight: 400;
       color: #ffffff;
+    }
+
+    #result-summary span {
+      font-weight: 700;
     }
     
         .adv-label {
@@ -336,56 +346,40 @@
       position: relative;
     }
 
-        .history-entry {
+          .history-entry {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 0;
+      padding: 14px 8px;
       border-bottom: 1px solid var(--border);
       gap: 16px;
-      flex-wrap: wrap;
     }
 
     .history-title {
       color: var(--accent);
       font-size: 1rem;
-      flex: 1 1 260px;
-      text-align: left;           /* Left justified */
-      min-width: 0;
+      flex: 1 1 220px;
+      text-align: left;
+      word-break: break-word;        /* Allow wrapping */
     }
 
     .history-total {
       color: var(--text);
       font-weight: 700;
       font-size: 1.05rem;
-      text-align: center;         /* Text centered */
-      flex: 1 1 320px;
-      max-width: 100%;
-      word-break: break-word;
+      text-align: center;
+      flex: 2 1 360px;               /* Stronger center weighting */
+      word-break: break-word;        /* Allow wrapping */
     }
 
     .history-timestamp {
       color: var(--text-muted);
       font-size: 0.95rem;
       text-align: right;
-      flex: 0 0 90px;
-      white-space: nowrap;
+      flex: 0 0 92px;
+      white-space: nowrap;           /* Keep timestamp on one line */
     }
 
-    /* Small screen fallback */
-    @media (max-width: 520px) {
-      .history-entry {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-      }
-      .history-title,
-      .history-total,
-      .history-timestamp {
-        text-align: left;
-        width: 100%;
-      }
-    }
 
     /* Hamburger Menu */
     .hamburger-btn {
@@ -626,8 +620,8 @@ function initCustomDicePanel() {
   const advancedBtn = document.createElement('button');
   advancedBtn.textContent = '- +';
   advancedBtn.className = 'small-control-btn';
-  advancedBtn.style.fontSize = '1.2rem';
-  advancedBtn.style.letterSpacing = '1px';
+  advancedBtn.style.fontSize = '1.3rem';
+  advancedBtn.style.letterSpacing = '0px';
   advancedBtn.title = 'Advanced Options';
   advancedBtn.onclick = showAdvancedOptionsModal;
   advancedContainer.appendChild(advancedBtn);
@@ -906,15 +900,14 @@ function showHistoryModal() {
   let html = '';
 
   if (rollHistory.length === 0) {
-    html = `<div style="text-align:center; padding:40px 20px; color:#64748b;">
-              No rolls yet.<br><br>
-              <span style="font-size:0.95rem;">Roll some dice to see history here.</span>
+    html = `<div style="text-align:center; padding:60px 20px; color:#64748b; font-size:1.05rem;">
+              No rolls yet.
             </div>`;
   } else {
     rollHistory.forEach(e => {
       const diceList = e.expression.split(' + ').join(', ');
-      const rollsWithPlus = e.rolls.join(' + ');
-      let totalLine = `${rollsWithPlus}`;
+
+      let totalLine = e.rolls.join('+');
       if (e.modifier !== 0) {
         totalLine += ` (${e.modifier > 0 ? '+' : ''}${e.modifier})`;
       }
