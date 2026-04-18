@@ -718,13 +718,13 @@ function initCustomDicePanel() {
   const panel = document.getElementById('custom-dice-panel');
   panel.innerHTML = '';
 
+  // Timer to prevent accidental clicks right after expand
+  let lastExpandTime = 0;
+
   // === Dice Collapse Button ===
   const collapseBtn = document.createElement('div');
   collapseBtn.className = 'dice-collapse-btn';
   collapseBtn.id = 'dice-collapse-btn';
-
-  // Add first-load class for breathing animation
-  collapseBtn.classList.add('first-load');
 
   const collapseGif = createDieGIF('d20');
   collapseBtn.appendChild(collapseGif);
@@ -739,30 +739,22 @@ function initCustomDicePanel() {
   label.textContent = 'Dice';
   collapseBtn.appendChild(label);
 
-  // Timer for 250ms protection
-  let lastExpandTime = 0;
-
-  // Hover / Touch expands
-  collapseBtn.onmouseenter = () => {
+  // Hover / Touch start → expand
+  const expandPanel = () => {
     lastExpandTime = Date.now();
     panel.classList.remove('collapsed');
   };
 
-  collapseBtn.ontouchstart = () => {
-    lastExpandTime = Date.now();
-    panel.classList.remove('collapsed');
-  };
+  collapseBtn.onmouseenter = expandPanel;
+  collapseBtn.ontouchstart = expandPanel;
 
-  // Click with 250ms protection
+  // Click to toggle (with protection)
   collapseBtn.onclick = (e) => {
     e.stopPropagation();
-
     const now = Date.now();
-    const recentlyExpanded = (now - lastExpandTime) < 250;
+    const recentlyExpanded = (now - lastExpandTime) < 500;   
 
-    if (recentlyExpanded) {
-      return; // Prevent accidental dice selection
-    }
+    if (recentlyExpanded) return;
 
     panel.classList.toggle('collapsed');
   };
@@ -798,8 +790,17 @@ function initCustomDicePanel() {
     resetX.title = `Reset ${type.toUpperCase()}`;
     btn.appendChild(resetX);
 
+    // Prevent click if panel was just expanded (mobile safety)
     btn.onclick = (e) => {
       if (e.target.classList.contains('reset-x')) return;
+
+      const now = Date.now();
+      const recentlyExpanded = (now - lastExpandTime) < 300;
+
+      if (recentlyExpanded) {
+        return;   // Block accidental selection
+      }
+
       customDice[type].count = (customDice[type].count + 1) % (MAX_PER_DIE + 1) || 1;
       updateCustomDiceUI();
       updatePreview();
@@ -816,7 +817,7 @@ function initCustomDicePanel() {
     panel.appendChild(btn);
   });
 
-  // Advanced Options Container
+  // Advanced Options Container (unchanged)
   const advancedContainer = document.createElement('div');
   advancedContainer.style.position = 'relative';
   advancedContainer.style.width = '56px';
