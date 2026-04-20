@@ -19,19 +19,89 @@
       align-items: center;
       gap: 1.25rem;
       padding: 0.85rem 1rem;
-      background: rgba(31, 41, 55, 0.7);
+      background: rgba(31, 41, 55, 0.85);
       border-radius: 12px;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: background 500ms ease-in-out,
-                  box-shadow 300ms ease-in-out;
+      transition: box-shadow 400ms ease-in-out;
     }
 
+    /* First school color overlay */
+    .character-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      z-index: -1;
+      background: var(--school-color);
+      opacity: 0;
+      transition: opacity 500ms ease-in-out;
+      pointer-events: none;
+    }
+
+    /* Second school color overlay - even stronger intensity */
+    .character-container::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      z-index: -1;
+      background: var(--school-color);
+      opacity: 0;
+      transition: opacity 500ms ease-in-out;
+      pointer-events: none;
+      filter: brightness(1.5) saturate(2.0);   /* Stronger punch */
+    }
+
+    /* Selected state - very strong highlight */
+    .character-container.selected::before {
+      opacity: 0.92;
+    }
+
+    .character-container.selected::after {
+      opacity: 0.82;   /* Doubled intensity */
+    }
+
+    /* Low HP - still very visible but slightly darker */
+    .character-container.selected.low-hp::before {
+      opacity: 0.78;
+    }
+
+    .character-container.selected.low-hp::after {
+      opacity: 0.68;
+      filter: brightness(1.35) saturate(1.7);
+    }
+
+    /* School-colored glow (no white glow) */
     .character-container.selected {
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.25);
+      box-shadow: 
+        0 0 0 4px var(--glow-color),
+        0 0 30px 12px var(--glow-color);   /* Strong colored glow */
     }
 
+    /* Dead state */
+    .character-container.dead {
+      background: rgba(31, 41, 55, 0.85);
+    }
+    .character-container.dead::before,
+    .character-container.dead::after {
+      opacity: 0;
+    }
+
+    .dead .name, 
+    .dead .hp-text, 
+    .dead .portrait {
+      opacity: 0.45;
+    }
+    .dead .college { display: none; }
+    .dead .health-bar { opacity: 0.35; }
+    .dead .name { text-decoration: line-through; }
+    .dead .portrait-wrapper::before {
+      background: rgba(0, 0, 0, 0.65);
+    }
+
+    /* Portrait */
     .portrait-wrapper {
       width: 78px;
       height: 78px;
@@ -83,22 +153,6 @@
       font-style: italic;
       color: #ffffff;
       margin-left: 10px;
-    }
-
-    .dead .name, .dead .hp-text, .dead .portrait {
-      opacity: 0.45;
-    }
-    .dead .college {
-      display: none;
-    }
-    .dead .health-bar {
-      opacity: 0.35;
-    }
-    .dead .name {
-      text-decoration: line-through;
-    }
-    .dead .portrait-wrapper::before {
-      background: rgba(0, 0, 0, 0.65);
     }
 
     @keyframes bounce {
@@ -225,6 +279,14 @@
       witherbloom: "linear-gradient(135deg, #4e8a4e, #e2e395)"
     };
 
+    const glowColors = {
+      silverquill: "rgba(220, 220, 210, 0.75)",
+      quandrix:    "rgba(100, 220, 180, 0.75)",
+      lorehold:    "rgba(240, 160, 140, 0.75)",
+      prismari:    "rgba(120, 190, 255, 0.75)",
+      witherbloom: "rgba(173, 255, 47, 0.75)"
+    };
+
     const characters = [
       { name: "Wrlrlrlrlrlrk", school: "witherbloom", maxHP: 20, currentHP: 20, changeCounter: 0, changeTimeout: null },
       { name: "Mr. Shaz",      school: "quandrix",    maxHP: 18, currentHP: 18, changeCounter: 0, changeTimeout: null },
@@ -256,19 +318,20 @@
         const isDead = char.currentHP === 0;
         const isLowHP = char.currentHP === 1;
 
-        container.className = `character-container ${isSelected ? "selected" : ""} ${isDead ? "dead" : ""}`;
+        container.classList.remove('selected', 'low-hp', 'dead');
 
         if (isDead) {
-          container.style.background = '';
+          container.classList.add('dead');
         } else if (isSelected) {
-          if (isLowHP) {
-            container.style.background = `linear-gradient(rgba(27,27,27,0.5), rgba(27,27,27,0.5)), ${schoolColors[char.school]}`;
-          } else {
-            container.style.background = schoolColors[char.school];
-          }
-        } else {
-          container.style.background = '';
+          container.classList.add('selected');
+          if (isLowHP) container.classList.add('low-hp');
         }
+
+        // Set school color for overlays
+        container.style.setProperty('--school-color', schoolColors[char.school]);
+        
+        // Set matching glow color
+        container.style.setProperty('--glow-color', glowColors[char.school]);
 
         if (wrapper) {
           wrapper.style.background = isDead 
