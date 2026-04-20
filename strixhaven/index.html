@@ -71,7 +71,7 @@
     filter: brightness(1.35) saturate(1.7);
   }
 
-  .character-container.selected:not(.dead) {
+  .character-container.selected {
     box-shadow: 
       0 0 0 4px var(--glow-color),
       0 0 30px 12px var(--glow-color);
@@ -86,17 +86,12 @@
   .character-container.dead {
     background: rgba(31, 41, 55, 0.52);
     border: 1px solid rgba(107, 114, 128, 0.35);
-  }
-
-  .character-container.dead::before,
-  .character-container.dead::after {
-    opacity: 0;
+    animation: deathDissolve 1.2s ease-in-out forwards;
   }
 
   .character-container.selected.dead {
     background: rgba(31, 41, 55, 0.62);
     border: 1px solid #9ca3af;
-    box-shadow: none;
   }
 
   .dead .name, 
@@ -164,6 +159,44 @@
     0% { transform: scale(1); }
     50% { transform: scale(1.5); }
     100% { transform: scale(1); }
+  }
+
+  @keyframes deathDissolve {
+    0% { opacity: 1; filter: grayscale(0); }
+    100% { opacity: 0.35; filter: grayscale(1) brightness(0.6); }
+  }
+
+  .healing-sparkle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: #ffd500;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 30;
+    opacity: 1.0;
+    animation: healingSparkleFall 0.85s ease-out forwards;
+  }
+
+  @keyframes healingSparkleFall {
+    0% { 
+      transform: translateY(0) scale(1); 
+      opacity: 0.75; 
+    }
+    100% { 
+      transform: translateY(65px) scale(0.3); 
+      opacity: 0; 
+    }
+  }
+
+  .damage-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(167, 6, 6, 0.805);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+    transition: opacity 5s ease-in-out;
   }
 </style>
 </head>
@@ -327,12 +360,10 @@
 
         if (isDead) {
           container.classList.add('dead');
-          if (isSelected) {
-            container.classList.add('selected');
-          }
-        } else if (isSelected) {
+        }
+        if (isSelected) {
           container.classList.add('selected');
-          if (isLowHP) container.classList.add('low-hp');
+          if (isLowHP && !isDead) container.classList.add('low-hp');
         }
 
         container.style.setProperty('--school-color', schoolColors[char.school]);
@@ -351,11 +382,44 @@
       });
     }
 
+    function triggerHealingSparkles(idx) {
+      const container = document.getElementById(`char-${idx}`);
+      for (let i = 0; i < 9; i++) {
+        setTimeout(() => {
+          const sparkle = document.createElement('div');
+          sparkle.className = 'healing-sparkle';
+          sparkle.style.left = (Math.random() * 70 + 15) + '%';
+          sparkle.style.top = (Math.random() * 35 + 15) + '%';
+          container.appendChild(sparkle);
+          setTimeout(() => sparkle.remove(), 1000);
+        }, i * 28);
+      }
+    }
+
+    function flashDamage(idx) {
+      const container = document.getElementById(`char-${idx}`);
+      let overlay = container.querySelector('.damage-overlay');
+      
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'damage-overlay';
+        container.appendChild(overlay);
+      }
+      
+      overlay.style.transition = 'none';
+      overlay.style.opacity = '0.7';
+      void overlay.offsetWidth;
+      overlay.style.transition = 'opacity 0.5s ease-out';
+      overlay.style.opacity = '0';
+    }
+
     function updateHealth(change) {
       if (selectedNavIndex === -1) return;
       const idx = navOrder[selectedNavIndex];
       const char = characters[idx];
-      if (change > 0 && char.currentHP === char.maxHP) return;
+
+      if (change > 0 && char.currentHP >= char.maxHP) return;
+      if (change < 0 && char.currentHP <= 0) return;
 
       char.currentHP = Math.max(0, Math.min(char.maxHP, char.currentHP + change));
 
@@ -373,6 +437,14 @@
         changeEl.style.display = "none";
         char.changeCounter = 0;
       }, 1200);
+
+      if (change > 0) {
+        triggerHealingSparkles(idx);
+      }
+
+      if (change < 0) {
+        flashDamage(idx);
+      }
 
       renderCharacters();
     }
