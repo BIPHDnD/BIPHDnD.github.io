@@ -1059,15 +1059,28 @@ function performCustomRoll() {
     if (frame > 28 + Math.random() * 18) {
       clearInterval(cycling);
 
+      // === FINAL ROLLS + CRITICAL HIGHLIGHTING ===
       let sum = 0;
       const displayedRolls = [];
       const rollData = [];
 
-      // Record final rolls
       diceElements.forEach(({valEl, type, mini}) => {
         const sides = parseInt(type.slice(1));
         const v = Math.floor(Math.random() * sides) + 1;
+        
         valEl.textContent = v;
+
+        // === CRITICAL SUCCESS / FAIL LOGIC ===
+        if (type === 'd20') {
+          if (v === 1) {
+            valEl.classList.add('critical-fail');
+            mini.classList.add('critical-fail');
+          } else if (v === 20) {
+            valEl.classList.add('critical-hit');
+            mini.classList.add('critical-hit');
+          }
+        }
+
         rollData.push({ value: v, mini: mini, valEl: valEl, type });
       });
 
