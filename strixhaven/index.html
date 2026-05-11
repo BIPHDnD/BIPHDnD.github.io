@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIPH Band</title>
+    <link rel="icon" href="https://cdn.glitch.global/bed65df6-4eb8-4247-853c-e198a6399561/icons%2FBGicon.png">
+    <style>
+        @font-face {
+            font-family: 'Zapfino';
+            src: url('../fonts/Zapfino.ttf') format('truetype');
+        }
+        
+        body {
+            background-color: rgba(45, 70, 119);
+            font-family: 'Andika', sans-serif;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            text-align: center; 
+        }
+
+        /* Background */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/strixhaven-art-clean.png');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            z-index: -4;
+            filter: brightness(0.85) contrast(1.1);
+        }
+
+        .blue-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(20, 35, 70, 0.65), rgba(9, 20, 50, 0.75));
+            z-index: -3;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 70%, #303f6c 0%, transparent 50%),
+                        radial-gradient(circle at 70% 30%, #236693 0%, transparent 50%);
+            mix-blend-mode: overlay;
+            opacity: 0.4;
+            z-index: -2;
+        }
+
+        /* Strixhaven Title */
+        .strixhaven-header {
+            position: relative;
+            margin: 60px auto 40px;
+            max-width: 1000px;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .strix-title {
+            font-family: 'Georgia', serif;
+            font-size: clamp(3.5rem, 8vw, 7rem);
+            font-weight: 900;
+            color: #f8f1e3;
+            text-shadow: 
+                0 0 20px #ffdd88,
+                0 0 40px #c85a00,
+                3px 3px 0 #000,
+                -2px -2px 0 #000;
+            letter-spacing: 4px;
+            margin: 0;
+            line-height: 1;
+            opacity: 0;
+            animation: fadeInUp 2s ease forwards;
+        }
+
+        .subtitle {
+            font-family: 'Georgia', serif;
+            font-size: clamp(1.4rem, 3vw, 2.4rem);
+            color: #f8f1e3;
+            text-shadow: 2px 2px 4px #000;
+            letter-spacing: 3px;
+            margin: 12px 0 0;
+            font-weight: 700;
+            opacity: 0;
+            animation: fadeInUp 2s ease 0.4s forwards;
+        }
+
+        .red-divider {
+            height: 6px;
+            background: linear-gradient(to right, transparent, #c41e3a, #c41e3a, transparent);
+            margin: 20px auto;
+            max-width: 420px;
+            box-shadow: 0 3px 8px rgba(196, 30, 58, 0.6);
+            opacity: 0;
+            animation: fadeInUp 1.8s ease 0.8s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo */
+        .logocontainer {
+            min-height: 10vh;
+            padding-bottom: 50px;
+        }
+
+        .logo {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 25vh;
+            height: auto;
+            z-index: 10;
+            opacity: 0;
+            animation: logoFadeIn 2.5s ease 0.6s forwards;
+        }
+
+        @keyframes logoFadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Buttons - No Icons */
+        .container {
+            max-width: 800px;
+            margin: 20px auto 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+        }
+
+        .button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 40px;
+            font-family: 'Andika', sans-serif;
+            font-size: 1.6rem;
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, rgba(35, 102, 147, 0.85), rgba(48, 63, 108, 0.85));
+            border: 2px solid #ffffff;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 340px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, rgba(48, 63, 108, 1), rgba(35, 102, 147, 1));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="blue-overlay"></div>
+    <div class="overlay"></div>
+
+    <!-- Strixhaven Title -->
+    <div class="strixhaven-header">
+        <h1 class="strix-title">STRIXHAVEN</h1>
+        <h2 class="subtitle">A BIPH ACTUAL PLAY EXPERIENCE</h2>
+        <div class="red-divider"></div>
+    </div>
+
+    <div class="container">
+        <a href="https://biphband.github.io/awardsceremony/" class="button">
+            <span>Show Control</span>
+        </a>
+
+        <a href="https://biphband.github.io/broadwayepics/" class="button">
+            <span>Player HP</span>
+        </a>
+    </div>
+
+    <!-- Logo -->
+    <div class="logocontainer">
+        <img src="images/logo.png" alt="BASIS Logo" class="logo">
+    </div>
+
+</body>
+</html>
