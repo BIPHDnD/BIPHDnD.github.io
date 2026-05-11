@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIPH Band</title>
-    <link rel="icon" href="https://cdn.glitch.global/bed65df6-4eb8-4247-853c-e198a6399561/icons%2FBGicon.png">
+    <title>Strixhaven - Actual Play</title>
+    <link rel="icon" href="images/d20icon.png">
     <style>
         @font-face {
             font-family: 'Zapfino';
@@ -19,6 +19,7 @@
             padding: 20px;
             line-height: 1.6;
             text-align: center; 
+            overflow-x: hidden;
         }
 
         /* Background */
@@ -59,7 +60,7 @@
             z-index: -2;
         }
 
-        /* Strixhaven Title */
+                /* Title & Subtitle */
         .strixhaven-header {
             position: relative;
             margin: 60px auto 40px;
@@ -72,12 +73,10 @@
             font-family: 'Georgia', serif;
             font-size: clamp(3.5rem, 8vw, 7rem);
             font-weight: 900;
-            color: #f8f1e3;
+            color: #ffffff;
             text-shadow: 
-                0 0 20px #ffdd88,
-                0 0 40px #c85a00,
-                3px 3px 0 #000,
-                -2px -2px 0 #000;
+                4px 3px 0 #000,    /* main drop shadow */
+                0 0 25px #ffdd88;  /* subtle glow */
             letter-spacing: 4px;
             margin: 0;
             line-height: 1;
@@ -88,8 +87,8 @@
         .subtitle {
             font-family: 'Georgia', serif;
             font-size: clamp(1.4rem, 3vw, 2.4rem);
-            color: #f8f1e3;
-            text-shadow: 2px 2px 4px #000;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px #000, 0 0 12px #ffdd88;
             letter-spacing: 3px;
             margin: 12px 0 0;
             font-weight: 700;
@@ -99,10 +98,10 @@
 
         .red-divider {
             height: 6px;
-            background: linear-gradient(to right, transparent, #c41e3a, #c41e3a, transparent);
+            background: linear-gradient(to right, transparent, #c41e3a, #ff3366, #c41e3a, transparent);
             margin: 20px auto;
             max-width: 420px;
-            box-shadow: 0 3px 8px rgba(196, 30, 58, 0.6);
+            box-shadow: 0 3px 10px rgba(196, 30, 58, 0.7);
             opacity: 0;
             animation: fadeInUp 1.8s ease 0.8s forwards;
         }
@@ -115,6 +114,21 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        @keyframes subtleGlow {
+            from { 
+                text-shadow: 
+                    -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000,
+                    -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
+                    0 0 20px #ffdd88; 
+            }
+            to { 
+                text-shadow: 
+                    -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000,
+                    -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
+                    0 0 28px #ffeeaa; 
             }
         }
 
@@ -132,14 +146,14 @@
             height: auto;
             z-index: 10;
             opacity: 0;
-            animation: logoFadeIn 2.5s ease 0.6s forwards;
+            animation: logoFadeIn 2.8s ease 0.8s forwards;
         }
 
         @keyframes logoFadeIn {
             to { opacity: 1; }
         }
 
-        /* Buttons - No Icons */
+        /* Buttons */
         .container {
             max-width: 800px;
             margin: 20px auto 0;
@@ -147,32 +161,64 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 18px;
+            gap: 22px;
         }
 
         .button {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 18px 40px;
-            font-family: 'Andika', sans-serif;
-            font-size: 1.6rem;
+            padding: 20px 50px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 1.65rem;
             color: white;
             text-decoration: none;
-            background: linear-gradient(135deg, rgba(35, 102, 147, 0.85), rgba(48, 63, 108, 0.85));
-            border: 2px solid #ffffff;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            min-width: 340px;
+            background: linear-gradient(135deg, rgba(35, 102, 147, 0.9), rgba(48, 63, 108, 0.9));
+            border: 3px solid #a0d8ff;
+            border-radius: 30px;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4),
+                        0 0 20px rgba(160, 216, 255, 0.4);
+            min-width: 360px;
             position: relative;
             overflow: hidden;
         }
 
+        .button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 40%;
+            height: 200%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.35),
+                transparent
+            );
+            transform: skewX(-25deg);
+            transition: all 0.7s ease;
+            opacity: 0;
+        }
+
         .button:hover {
-            background: linear-gradient(135deg, rgba(48, 63, 108, 1), rgba(35, 102, 147, 1));
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, rgba(70, 130, 180, 1), rgba(90, 60, 150, 1));
+            border-color: #ffdd88;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(120, 80, 200, 0.5),
+                        0 0 35px rgba(255, 200, 80, 0.5);
+        }
+
+        .button:hover::before {
+            opacity: 1;
+            left: 120%;
+        }
+
+        .button span {
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
     </style>
 </head>
@@ -189,11 +235,11 @@
     </div>
 
     <div class="container">
-        <a href="https://biphband.github.io/awardsceremony/" class="button">
+        <a href="https://biphdnd.github.io/strixhaven/showcontrol" class="button">
             <span>Show Control</span>
         </a>
 
-        <a href="https://biphband.github.io/broadwayepics/" class="button">
+        <a href="https://biphdnd.github.io/strixhaven/hp" class="button">
             <span>Player HP</span>
         </a>
     </div>
