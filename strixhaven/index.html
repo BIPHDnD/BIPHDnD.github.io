@@ -5,132 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strixhaven - Actual Play</title>
     <link rel="icon" href="images/d20icon.png">
-    <style>
-        @font-face {
-            font-family: 'Zapfino';
-            src: url('../fonts/Zapfino.ttf') format('truetype');
-        }
-        
-        body {
-            background-color: rgba(45, 70, 119);
-            font-family: 'Andika', sans-serif;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-            text-align: center; 
-            overflow-x: hidden;
-        }
+<style>
+    @font-face {
+        font-family: 'Zapfino';
+        src: url('../fonts/Zapfino.ttf') format('truetype');
+    }
+    
+    body {
+        background-color: rgba(45, 70, 119);
+        font-family: 'Andika', sans-serif;
+        color: #ffffff;
+        margin: 0;
+        padding: 16px;
+        line-height: 1.6;
+        text-align: center; 
+        overflow-x: hidden;
+        min-height: 100dvh;
+    }
 
-        /* Background */
-        .background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('images/strixhaven-art-clean.png');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            z-index: -4;
-            filter: brightness(0.85) contrast(1.1);
-        }
+    /* Background layers */
+    .background, .blue-overlay, .overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -4;
+    }
 
-        .blue-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(20, 35, 70, 0.65), rgba(9, 20, 50, 0.75));
-            z-index: -3;
-        }
+    .background {
+        background-image: url('images/strixhaven-art-clean.png');
+        background-size: cover;
+        background-position: center center;
+        filter: brightness(0.85) contrast(1.1);
+    }
 
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 30% 70%, #303f6c 0%, transparent 50%),
-                        radial-gradient(circle at 70% 30%, #236693 0%, transparent 50%);
-            mix-blend-mode: overlay;
-            opacity: 0.4;
-            z-index: -2;
-        }
+    .blue-overlay {
+        background: linear-gradient(135deg, rgba(20, 35, 70, 0.65), rgba(9, 20, 50, 0.75));
+        z-index: -3;
+    }
 
-                /* Title & Subtitle */
-        .strixhaven-header {
-            position: relative;
-            margin: 60px auto 40px;
-            max-width: 1000px;
-            padding: 20px 0;
-            text-align: center;
-        }
+    .overlay {
+        background: radial-gradient(circle at 30% 70%, #303f6c 0%, transparent 50%),
+                    radial-gradient(circle at 70% 30%, #236693 0%, transparent 50%);
+        mix-blend-mode: overlay;
+        opacity: 0.4;
+        z-index: -2;
+    }
 
-        .strix-title {
-            font-family: 'Georgia', serif;
-            font-size: clamp(3.5rem, 8vw, 7rem);
-            font-weight: 900;
-            color: #ffffff;
-            text-shadow: 
-                4px 3px 0 #000,    /* main drop shadow */
-                0 0 25px #ffdd88;  /* subtle glow */
-            letter-spacing: 4px;
-            margin: 0;
-            line-height: 1;
-            opacity: 0;
-            animation: fadeInUp 2s ease forwards;
-        }
+    /* Title */
+    .strixhaven-header {
+        margin: 40px auto 35px;
+        max-width: 1000px;
+        padding: 10px 0;
+    }
 
-        .subtitle {
-            font-family: 'Georgia', serif;
-            font-size: clamp(1.4rem, 3vw, 2.4rem);
-            color: #ffffff;
-            text-shadow: 2px 2px 4px #000, 0 0 12px #ffdd88;
-            letter-spacing: 3px;
-            margin: 12px 0 0;
-            font-weight: 700;
-            opacity: 0;
-            animation: fadeInUp 2s ease 0.4s forwards;
-        }
+    .strix-title {
+        font-family: 'Georgia', serif;
+        font-size: clamp(2.8rem, 11vw, 6.2rem);
+        font-weight: 900;
+        color: #ffffff;
+        text-shadow: 4px 3px 0 #000, 0 0 25px #ffdd88;
+        letter-spacing: 2px;
+        margin: 0;
+        line-height: 1.05;
+        opacity: 0;
+        animation: fadeInUp 2s ease forwards;
+    }
 
-        .red-divider {
-            height: 6px;
-            background: linear-gradient(to right, transparent, #c41e3a, #ff3366, #c41e3a, transparent);
-            margin: 20px auto;
-            max-width: 420px;
-            box-shadow: 0 3px 10px rgba(196, 30, 58, 0.7);
-            opacity: 0;
-            animation: fadeInUp 1.8s ease 0.8s forwards;
-        }
+    .subtitle {
+        font-family: 'Georgia', serif;
+        font-size: clamp(1.25rem, 4.5vw, 2.1rem);
+        color: #ffffff;
+        text-shadow: 2px 2px 4px #000, 0 0 12px #ffdd88;
+        letter-spacing: 2px;
+        margin: 10px 0 0;
+        font-weight: 700;
+        opacity: 0;
+        animation: fadeInUp 2s ease 0.4s forwards;
+    }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .red-divider {
+        height: 6px;
+        background: linear-gradient(to right, transparent, #c41e3a, #ff3366, #c41e3a, transparent);
+        margin: 25px auto;
+        max-width: 380px;
+        box-shadow: 0 3px 10px rgba(196, 30, 58, 0.7);
+        opacity: 0;
+        animation: fadeInUp 1.8s ease 0.8s forwards;
+    }
 
-        @keyframes subtleGlow {
-            from { 
-                text-shadow: 
-                    -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000,
-                    -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
-                    0 0 20px #ffdd88; 
-            }
-            to { 
-                text-shadow: 
-                    -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000,
-                    -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
-                    0 0 28px #ffeeaa; 
-            }
-        }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 
         /* Logo */
         .logocontainer {
@@ -140,8 +107,8 @@
 
         .logo {
             position: fixed;
-            right: 20px;
-            bottom: 20px;
+            right: 25px;
+            bottom: 25px;
             width: 25vh;
             height: auto;
             z-index: 10;
@@ -153,74 +120,71 @@
             to { opacity: 1; }
         }
 
-        /* Buttons */
-        .container {
-            max-width: 800px;
-            margin: 20px auto 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 22px;
-        }
+    /* Buttons - More side spacing */
+    .container {
+        max-width: 800px;
+        margin: 20px auto 100px;   /* extra bottom space for logo */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        padding: 0 200px;           /* Increased side padding */
+    }
 
-        .button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px 50px;
-            font-family: 'Verdana', sans-serif;
-            font-size: 1.65rem;
-            color: white;
-            text-decoration: none;
-            background: linear-gradient(135deg, rgba(35, 102, 147, 0.9), rgba(48, 63, 108, 0.9));
-            border: 3px solid #a0d8ff;
-            border-radius: 30px;
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4),
-                        0 0 20px rgba(160, 216, 255, 0.4);
-            min-width: 360px;
-            position: relative;
-            overflow: hidden;
-        }
+    .button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px 40px;
+        font-family: 'Verdana', sans-serif;
+        font-size: clamp(1.35rem, 5vw, 1.65rem);
+        color: white;
+        text-decoration: none;
+        background: linear-gradient(135deg, rgba(35, 102, 147, 0.9), rgba(48, 63, 108, 0.9));
+        border: 3px solid #a0d8ff;
+        border-radius: 30px;
+        transition: all 0.4s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4),
+                    0 0 20px rgba(160, 216, 255, 0.4);
+        width: 100%;
+        max-width: 380px;           /* Slightly narrower for better side space */
+        min-width: unset;
+        position: relative;
+        overflow: hidden;
+    }
 
-        .button::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 40%;
-            height: 200%;
-            background: linear-gradient(
-                120deg,
-                transparent,
-                rgba(255, 255, 255, 0.35),
-                transparent
-            );
-            transform: skewX(-25deg);
-            transition: all 0.7s ease;
-            opacity: 0;
-        }
+    .button::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 40%;
+        height: 200%;
+        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.35), transparent);
+        transform: skewX(-25deg);
+        transition: all 0.7s ease;
+        opacity: 0;
+    }
 
-        .button:hover {
-            background: linear-gradient(135deg, rgba(70, 130, 180, 1), rgba(90, 60, 150, 1));
-            border-color: #ffdd88;
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 12px 30px rgba(120, 80, 200, 0.5),
-                        0 0 35px rgba(255, 200, 80, 0.5);
-        }
+    .button:hover {
+        background: linear-gradient(135deg, rgba(70, 130, 180, 1), rgba(90, 60, 150, 1));
+        border-color: #ffdd88;
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(120, 80, 200, 0.5),
+                    0 0 35px rgba(255, 200, 80, 0.5);
+    }
 
-        .button:hover::before {
-            opacity: 1;
-            left: 120%;
-        }
+    .button:hover::before {
+        opacity: 1;
+        left: 120%;
+    }
 
-        .button span {
-            position: relative;
-            z-index: 2;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-        }
-    </style>
+    .button span {
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+</style>
 </head>
 <body>
     <div class="background"></div>
