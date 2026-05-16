@@ -478,6 +478,13 @@
     }
 
     document.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'r' || e.key.toLowerCase() === 'l')) {
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
+        return;
+      }
+
       e.preventDefault();
       if (e.key === "Escape") deselectCharacter();
       else if (e.key >= "1" && e.key <= "6") selectCharacter(parseInt(e.key) - 1);
